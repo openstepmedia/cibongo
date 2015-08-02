@@ -296,8 +296,8 @@ class Auth {
         }
 
         $this->user = $user;
-        $this->user->id = (int) $this->user->id;
-        $this->user->role_id = (int) $this->user->role->id;
+        $this->user->id = $this->user->id;
+        $this->user->role_id = $this->user->role->id;
 
         return $this->user;
     }
@@ -333,10 +333,11 @@ class Auth {
         // Does the user/role have the permission?
         if (isset($permissions[$permission])) {
 
-            $role_permissions = $this->loadRolePermissions($role_id);
+            //$role_permissions = $this->loadRolePermissions($role_id);
+            $this->loadRoleODMPermissions($role_id);
             $permission_id = $permissions[$permission];
 
-            if (isset($role_permissions[$role_id][$permission_id])) {
+            if (isset($this->role_permissions[$role_id][$permission_id])) {
                 return true;
             }
         } elseif ($override) {
@@ -775,6 +776,27 @@ class Auth {
         return $this->permissions;
     }
 
+    
+    private function loadRoleODMPermissions($role_id = NULL)
+    {
+        $role_id = !is_null($role_id) ? $role_id : $this->role_id();
+
+        if (!isset($this->role_permissions[$role_id])) {
+
+            if (!class_exists('role_odm_model', false)) {
+                $this->ci->load->model('roles/role_odm_model');
+            }
+            
+            $role = $this->ci->role_odm_model->find($role_id);
+
+            if ($role) {
+                foreach ($role->role_permissions as $permission) {
+                    $this->role_permissions[$role_id][$permission->id] = TRUE;
+                }
+            }
+        }
+    }
+    
     /**
      * Load the role permissions from the database.
      *
