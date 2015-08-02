@@ -147,6 +147,8 @@ class Settings extends Admin_Controller
         }
 
         // Fetch the users to display
+        $all_users_by = $this->user_odm_model->find_all_by($where);
+        /*
         $this->user_model->limit($this->limit, $offset)
                          ->where($where)
                          ->select(
@@ -163,7 +165,11 @@ class Settings extends Admin_Controller
                                 'role_name',
                              )
                          );
-        Template::set('users', $this->user_model->find_all());
+         * 
+         */
+        
+        
+        Template::set('users', $this->user_odm_model->find_all());
 
         // Used as the view's index_url and the base for the pager's base_url.
         $indexUrl = site_url(SITE_AREA . '/settings/users/index') . '/';
@@ -174,7 +180,8 @@ class Settings extends Admin_Controller
 
         $this->pager['base_url']    = "{$indexUrl}{$filter}/";
         $this->pager['per_page'] = $this->limit;
-        $this->pager['total_rows']  = $this->user_model->where($where)->count_all();
+        //$this->pager['total_rows']  = $this->user_model->where($where)->count_all();
+        $this->pager['total_rows']  = count($all_users_by);
         $this->pager['uri_segment'] = 6;
 
         $this->pagination->initialize($this->pager);

@@ -67,9 +67,14 @@ class Settings extends Admin_Controller
     public function index()
     {
         // Get User Counts
-        Template::set('deleted_users', $this->user_model->count_all(true));
-        Template::set('role_counts', $this->user_model->count_by_roles());
-        Template::set('total_users', $this->user_model->count_all());
+        /*
+        Template::set('deleted_users', $this->user_odm_model->count_all(true));
+        Template::set('role_counts', $this->user_odm_model->count_by_roles());
+        Template::set('total_users', $this->user_odm_model->count_all());
+        */
+        Template::set('deleted_users', $this->user_odm_model->count_all(true));
+        Template::set('role_counts', $this->user_odm_model->count_by_roles());
+        Template::set('total_users', $this->user_odm_model->count_all());
 
         $roles = $this->role_odm_model->qb()
                 ->field('deleted')->equals(0)

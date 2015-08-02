@@ -391,6 +391,8 @@ class User_odm_model extends BF_ODM_Model
      */
     public function count_by_roles()
     {
+        $results = array();
+        /*
         $this->db->select(array("{$this->roles_table}.role_name", 'count(1) as count'))
                  ->from($this->table_name)
                  ->join($this->roles_table, "{$this->roles_table}.role_id = {$this->table_name}.role_id", 'left')
@@ -400,10 +402,12 @@ class User_odm_model extends BF_ODM_Model
         if ($query->num_rows()) {
             return $query->result();
         }
+         * 
+         */
 
 
 
-        return false;
+        return $results;
     }
 
     /**

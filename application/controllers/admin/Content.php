@@ -1,4 +1,7 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+
+if (!defined('BASEPATH'))
+    exit('No direct script access allowed');
 /**
  * Bonfire
  *
@@ -12,7 +15,6 @@
  * @since     Version 1.0
  * @filesource
  */
-
 // ------------------------------------------------------------------------
 
 /**
@@ -27,37 +29,37 @@
  * @link       http://guides.cibonfire.com/helpers/file_helpers.html
  *
  */
-class Content extends Admin_Controller
-{
+class Content extends Admin_Controller {
 
+    /**
+     * Controller constructor sets the Title and Permissions
+     *
+     */
+    public function __construct()
+    {
+        parent::__construct();
 
-	/**
-	 * Controller constructor sets the Title and Permissions
-	 *
-	 */
-	public function __construct()
-	{
-		parent::__construct();
+        Template::set('toolbar_title', 'Content');
 
-		Template::set('toolbar_title', 'Content');
+        $this->auth->restrict('Site.Content.View');
+    }
 
-		$this->auth->restrict('Site.Content.View');
-	}//end __construct()
+//end __construct()
+    //--------------------------------------------------------------------
 
-	//--------------------------------------------------------------------
+    /**
+     * Displays the initial page of the Content context
+     *
+     * @return void
+     */
+    public function index()
+    {
+        Template::set_view('admin/content/index');
+        Template::render();
+    }
 
-	/**
-	 * Displays the initial page of the Content context
-	 *
-	 * @return void
-	 */
-	public function index()
-	{
-		Template::set_view('admin/content/index');
-		Template::render();
-	}//end index()
+//end index()
+    //--------------------------------------------------------------------
+}
 
-	//--------------------------------------------------------------------
-
-
-}//end class
+//end class

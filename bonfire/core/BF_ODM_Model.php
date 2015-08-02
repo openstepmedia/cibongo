@@ -421,7 +421,9 @@ class BF_ODM_Model extends CI_Model
             }
         } else {
             //$this->db->where($where);
-            $qb = $qb->field($field)->equals($value);
+            foreach($where as $field => $value) {
+                $qb->field($field)->equals($value);
+            }
         }
         return $this->run_qb($qb);
     }
@@ -661,6 +663,7 @@ class BF_ODM_Model extends CI_Model
             }
         }
 
+        print "<pre>data:"; print_r($data); exit;
         $result = $this->db->update_batch($this->table_name, $data, $index);
 
         // CI 2 returns null on success, CI 3 returns the number of affected rows.
