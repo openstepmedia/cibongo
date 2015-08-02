@@ -41,7 +41,7 @@ defined('BASEPATH') || exit('No direct script access allowed');
 */
 
 $autoload['packages'] = array(
-		realpath(APPPATH .'../bonfire'),	// Bonfire Core
+    realpath(APPPATH .'../bonfire'),	// Bonfire Core
     APPPATH . 'third_party',          // App -specific 3rd-party libs.
 );
 
@@ -62,7 +62,8 @@ $autoload['packages'] = array(
 |	$autoload['libraries'] = array('user_agent' => 'ua');
 */
 
-$autoload['libraries'] = array('database');
+//$autoload['libraries'] = array('database');
+$autoload['libraries'] = array('DoctrineODM');
 
 
 /*

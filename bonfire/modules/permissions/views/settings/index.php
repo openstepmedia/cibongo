@@ -6,7 +6,7 @@ $num_columns = 5;
 <div class="admin-box">
 	<p class="intro"><?php e(lang('permissions_intro')); ?></p>
     <?php
-    if (isset($results) && is_array($results) && count($results)) :
+    if (isset($results) && count($results)) :
         echo form_open($this->uri->uri_string());
     ?>
 		<table class="table table-striped">
@@ -30,9 +30,9 @@ $num_columns = 5;
 			<tbody>
 				<?php foreach ($results as $record) : ?>
 				<tr>
-					<td class="column-check"><input type="checkbox" name="checked[]" value="<?php echo $record->permission_id; ?>" /></td>
-					<td><?php echo $record->permission_id; ?></td>
-					<td><a href='<?php echo site_url(SITE_AREA . "/settings/permissions/edit/{$record->permission_id}"); ?>'><?php e($record->name); ?></a></td>
+					<td class="column-check"><input type="checkbox" name="checked[]" value="<?php echo $record->id; ?>" /></td>
+					<td><?php echo $record->id; ?></td>
+					<td><a href='<?php echo site_url(SITE_AREA . "/settings/permissions/edit/{$record->id}"); ?>'><?php e($record->name); ?></a></td>
 					<td><?php e($record->description); ?></td>
 					<td><?php e(ucfirst($record->status)); ?></td>
 				</tr>

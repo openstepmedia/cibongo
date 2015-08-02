@@ -21,6 +21,7 @@ td.button-column button {
     width: 20em;
 }
 </style>
+
 <div class="row icons">
     <?php if ($hasPermissionViewOwn) : ?>
 	<div class="column size1of4 media-box">
@@ -208,6 +209,7 @@ if ($hasPermissionDeleteOwn
                             <?php foreach ($activities as $activity) : ?>
                             <option value="<?php echo $activity->activity_id; ?>"><?php echo $activity->created_on; ?></option>
                             <?php endforeach; ?>
+                            
                         </select>
                     </td>
                     <td class='button-column'>
@@ -218,6 +220,10 @@ if ($hasPermissionDeleteOwn
 			<?php endif; ?>
 		</tbody>
 	</table>
+        
+        <?php foreach($activities_odm as $a) : ?>
+        <pre>name:<?php echo $a->username ?></pre>
+        <?php endforeach; ?>
 </div>
 <?php
 endif;

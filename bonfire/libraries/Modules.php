@@ -160,14 +160,17 @@ class Modules
 
         // Autoload core classes.
         if (is_file($location = APPPATH . "core/{$class}.php")) {
+            
             include_once $location;
             return;
         }
-
+        
         // Autoload Bonfire core classes.
-        if (strstr($class, 'BF_')
+        if (strstr($class, 'BF_') 
             && is_file($location = BFPATH . "core/{$class}.php")
         ) {
+        
+
             include_once($location);
             return;
         }

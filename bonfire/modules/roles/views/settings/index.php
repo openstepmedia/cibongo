@@ -28,7 +28,7 @@ th.users {
 		<tbody>
             <?php foreach ($roles as $role) : ?>
 			<tr>
-				<td><?php echo anchor(SITE_AREA . "/settings/roles/edit/{$role->role_id}", $role->role_name); ?></td>
+				<td><?php echo anchor(SITE_AREA . "/settings/roles/edit/{$role->id}", $role->role_name); ?></td>
 				<td class='text-center'><?php echo isset($roleCount[$role->role_name]) ? $roleCount[$role->role_name] : 0; ?></td>
 				<td><?php e($role->description); ?></td>
 			</tr>

@@ -42,6 +42,8 @@ class Content extends Admin_Controller
 		Template::set('toolbar_title', 'Content');
 
 		$this->auth->restrict('Site.Content.View');
+                
+                
 	}//end __construct()
 
 	//--------------------------------------------------------------------

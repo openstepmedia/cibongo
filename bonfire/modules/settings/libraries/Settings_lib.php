@@ -68,14 +68,14 @@ class Settings_lib
             self::$ci =& get_instance();
         }
 
-        if (! class_exists('settings_model') && isset(self::$ci->load)) {
-            self::$ci->load->model('settings/settings_model');
+        if (! class_exists('settings_odm_model') && isset(self::$ci->load)) {
+            self::$ci->load->model('settings/settings_odm_model');
         }
         if (! self::$settingsModelLoaded
-            && class_exists('settings_model')
+            && class_exists('settings_odm_model')
             && isset(self::$ci->db)
             && ! empty(self::$ci->db->database)
-            && self::$ci->db->table_exists(self::$ci->settings_model->get_table())
+            //&& self::$ci->db->table_exists(self::$ci->settings_model->get_table())
         ) {
             self::$settingsModelLoaded = true;
         }
@@ -153,7 +153,7 @@ class Settings_lib
 
         $value = null;
         if (self::$settingsModelLoaded) {
-            $setting = self::$ci->settings_model->find_by('name', $name);
+            $setting = self::$ci->settings_odm_model->find_by('name', $name);
             if ($setting) {
                 $value = $setting->value;
             }
@@ -192,12 +192,12 @@ class Settings_lib
 
         // If the value is cached and found in the database, update the database.
         if (isset(self::$cache[$name])
-            && self::$ci->settings_model->find_by('name', $name)
+            && self::$ci->settings_odm_model->find_by('name', $name)
         ) {
-            $setting = self::$ci->settings_model->update_where('name', $name, array('value' => $value));
+            $setting = self::$ci->settings_odm_model->update_where('name', $name, array('value' => $value));
         } else {
             // Otherwise, insert the data.
-            $setting = self::$ci->settings_model->insert(
+            $setting = self::$ci->settings_odm_model->insert(
                 array(
                     'name'   => $name,
                     'value'  => $value,
@@ -235,13 +235,13 @@ class Settings_lib
             return false;
         }
 
-        if (self::$ci->settings_model->delete_where(array('name' => $name, 'module' => $module))) {
+        if (self::$ci->settings_odm_model->delete_where(array('name' => $name, 'module' => $module))) {
             unset(self::$cache[$name]);
 
             return true;
         }
 
-        self::$errors[] = empty(self::$ci->settings_model->error) ? 'Error deleting setting from the database.' : self::$ci->settings_model->error;
+        self::$errors[] = empty(self::$ci->settings_odm_model->error) ? 'Error deleting setting from the database.' : self::$ci->settings_model->error;
 
         return false;
     }
@@ -266,7 +266,7 @@ class Settings_lib
             return self::$cache;
         }
 
-        $settings = self::$ci->settings_model->find_all();
+        $settings = self::$ci->settings_odm_model->find_all();
         foreach ($settings as $setting) {
             self::$cache[$setting->name] = $setting->value;
         }
@@ -295,7 +295,7 @@ class Settings_lib
             }
         }
 
-        $settings = self::$ci->settings_model->find_by($field, $value);
+        $settings = self::$ci->settings_odm_model->find_by($field, $value);
         foreach ($settings as $setting) {
             self::$cache[$setting['name']] = $setting['value'];
         }
@@ -324,7 +324,7 @@ class Settings_lib
             }
         }
 
-        $settings = self::$ci->settings_model->find_all_by($field, $value);
+        $settings = self::$ci->settings_odm_model->find_all_by($field, $value);
         if (! empty($settings) && is_array($settings)) {
             foreach ($settings as $key => $value) {
                 self::$cache[$key] = $value;
@@ -355,7 +355,7 @@ class Settings_lib
 
         $index = 'name';
         $internalCache = array();
-        $settings = self::$ci->settings_model->find_all();
+        $settings = self::$ci->settings_odm_model->find_all();
         foreach ($settings as $setting) {
             $internalCache[$setting->name] = $setting->value;
         }
@@ -376,13 +376,13 @@ class Settings_lib
 
         $result = false;
         if (! empty($updateData)) {
-            $result = self::$ci->settings_model->update_batch($updateData, $index);
+            $result = self::$ci->settings_odm_model->update_batch($updateData, $index);
             if (! $result && self::$ci->settings_model->error) {
                 self::$errors[] = self::$ci->settings_model->error;
             }
         }
         if (! empty($insertData)) {
-            $result = self::$ci->settings_model->insert_batch($insertData);
+            $result = self::$ci->settings_odm_model->insert_batch($insertData);
             if (! $result && self::$ci->settings_model->error) {
                 self::$errors[] = self::$ci->settings_model->error;
             }

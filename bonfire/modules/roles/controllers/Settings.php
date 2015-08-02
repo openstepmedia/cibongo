@@ -44,6 +44,7 @@ class Settings extends Admin_Controller
         $this->auth->restrict($this->permissionView);
 
         $this->load->model('role_model');
+        $this->load->model('role_odm_model');
         $this->lang->load('roles');
 
         Assets::add_module_css('roles', 'css/settings.css');
@@ -70,8 +71,14 @@ class Settings extends Admin_Controller
         Template::set('role_counts', $this->user_model->count_by_roles());
         Template::set('total_users', $this->user_model->count_all());
 
-        Template::set('roles', $this->role_model->where('deleted', 0)->find_all());
-
+        $roles = $this->role_odm_model->qb()
+                ->field('deleted')->equals(0)
+                ->getQuery()                
+                ->execute();
+        
+        //Template::set('roles', $this->role_model->where('deleted', 0)->find_all());
+        Template::set('roles', $roles);
+        
         Template::set('toolbar_title', lang('role_manage'));
         Template::render();
     }
@@ -118,8 +125,7 @@ class Settings extends Admin_Controller
     public function edit()
     {
         $this->auth->restrict($this->permissionEdit);
-
-        $id = (int) $this->uri->segment(5);
+        $id = $this->uri->segment(5);
         if (empty($id)) {
             Template::set_message(lang('role_invalid_id'), 'error');
             redirect(SITE_AREA . '/settings/roles');
@@ -130,11 +136,11 @@ class Settings extends Admin_Controller
                 Template::set_message(lang('role_edit_success'), 'success');
                 redirect(SITE_AREA . '/settings/roles');
             }
-            if (! empty($this->role_model->error)) {
+            if (! empty($this->role_odm_model->error)) {
                 Template::set_message(lang('role_edit_error') . $this->role_model->error, 'error');
             }
         } elseif (isset($_POST['delete'])) {
-            if ($this->role_model->delete($id)) {
+            if ($this->role_odm_model->delete($id)) {
                 Template::set_message(lang('role_delete_success'), 'success');
                 redirect(SITE_AREA . '/settings/roles');
             }
@@ -148,10 +154,11 @@ class Settings extends Admin_Controller
         }
 
         $title = lang('bf_action_edit') . ' ' . lang('matrix_role');
-        $role = $this->role_model->find($id);
-
+        $role = $this->role_odm_model->find($id);
+        $contexts = Contexts::getContexts(true);
+        
         Template::set_view('settings/role_form');
-        Template::set('contexts', Contexts::getContexts(true));
+        Template::set('contexts', $contexts);
         Template::set('role', $role);
         Template::set('toolbar_title', isset($role->role_name) ? "{$title}: {$role->role_name}" : $title);
 
@@ -169,8 +176,8 @@ class Settings extends Admin_Controller
      */
     public function matrix()
     {
-        $id = (int) $this->uri->segment(5);
-        $role = $this->role_model->find($id);
+        $id = $this->uri->segment(5);
+        $role = $this->role_odm_model->find($id);
 
         // ID is empty for a new role, so permissions won't be assigned, yet.
         if ($id == 0) {
@@ -184,17 +191,19 @@ class Settings extends Admin_Controller
         if (! $this->auth->has_permission('Permissions.' . ucwords($role->role_name) . '.Manage')) {
             $auth_failed = lang('matrix_auth_fail');
         } else {
-            $permissions_full = $role->permissions;
+            $permissions_full = $this->role_odm_model->get_all_permissions();
             $role_permissions = $role->role_permissions;
 
             $template = array();
             foreach ($permissions_full as $key => $perm) {
-                $template[$perm->name]['perm_id'] = $perm->permission_id;
+                $template[$perm->name]['perm_id'] = $perm->id;
                 $template[$perm->name]['value'] = 0;
-                if (isset($role_permissions[$perm->permission_id])) {
+                //if (isset($role_permissions[$perm->id])) {
+                if($perm->id == $role->hasPermission($perm->id)) {
                     $template[$perm->name]['value'] = 1;
                 }
             }
+//print "<pre>template:"; print_r($template); exit;
 
             // Extract the pieces from each permission.
             $domains = array();
@@ -249,7 +258,8 @@ class Settings extends Admin_Controller
      */
     private function saveRole($type = 'insert', $id = 0)
     {
-        $this->form_validation->set_rules($this->role_model->get_validation_rules($type));
+        $this->form_validation
+                ->set_rules($this->role_odm_model->get_validation_rules($type));
         if ($this->form_validation->run() === false) {
             return false;
         }
@@ -257,45 +267,45 @@ class Settings extends Admin_Controller
         // Grab the permissions and role name from the POST vars, if available.
         $permissions = $this->input->post('role_permissions');
         $roleName = $this->input->post('role_name');
-        $data = $this->role_model->prep_data($this->input->post());
+        $data = $this->role_odm_model->prep_data($this->input->post());
 
         if ($type == 'insert') {
-            $id = $this->role_model->insert($data);
-            $return = is_numeric($id);
+            $id = $this->role_odm_model->insert($data);
+            $return = !empty($id);
         } elseif ($type == 'update') {
-            $return = $this->role_model->update($id, $data);
+            $return = $this->role_odm_model->update($id, $data);
         }
 
         if (! $return) {
             return $return;
         }
 
-        // Reset validation so the permission model can use it.
-        $this->form_validation->reset_validation();
-        if (! class_exists('permission_model', false)) {
-            $this->load->model('permissions/permission_model');
-        }
-
         // Add a new management permission for the role.
         $new_perm_name = 'Permissions.' . ucwords($roleName) . '.Manage';
 
-        if ($type == 'insert') {
-            $add_perm = array(
-                'name'        => $new_perm_name,
-                'description' => "To manage the access control permissions for the {$roleName} role.",
-                'status'      => 'active'
-            );
+        $this->load->model('permissions/permission_odm_model');
+        
+        $add_perm = array(
+            'name'        => $new_perm_name,
+            'description' => "To manage the access control permissions for the {$roleName} role.",
+            'status'      => 'active'
+        );
 
-            $permissionId = $this->permission_model->insert($add_perm);
+        if ($type == 'insert') {
+            $permissionId = $this->permission_odm_model->insert($add_perm);
 
             if (! $permissionId) {
                 $this->error = 'There was an error creating the ACL permission.';
-                if (! empty($this->permission_model->error)) {
-                    $this->error .= " {$this->permission_model->error}";
+                if (! empty($this->permission_odm_model->error)) {
+                    $this->error .= " {$this->permission_odm_model->error}";
                 }
             } else {
                 // Give current_role and admin new Manage permission.
-                $roleIds = array(1);
+                
+                //get admin id:
+                $admin_role_id = $this->role_odm_model->find_by('role_name', 'Administrator');
+                $roleIds = array($admin_role_id);
+                
                 if (class_exists('auth')) {
                     $roleId = $this->auth->role_id();
                     if ($roleId != false) {
@@ -305,39 +315,57 @@ class Settings extends Admin_Controller
 
                 $rolePermissions = array();
                 foreach ($roleIds as $roleId) {
-                    $rolePermissions[] = array(
-                        'role_id'       => $roleId,
-                        'permission_id' => $permissionId,
-                    );
+                    print "<pre>roleid:$roleId";
+                    //get role document and update:
+                    $role = $this->role_odm_model->find($roleId);
+                    if(!empty($role->id)) {
+                        $role->role_permissions[] = $permissionId;
+                        $this->role_odm_model->save($role);
+                    }
                 }
-
-                // Reset validation so the role_permissions model can use it.
-                $this->form_validation->reset_validation();
-                $this->role_permission_model->insert_batch($rolePermissions);
             }
         } else {
             // Update
             //
             // Grab the name of the role being updated.
-            $current_name = $this->role_model->find($id)->role_name;
+            $current_name = $this->role_odm_model->find($id)->role_name;
 
+            $current_permission = 'Permissions.' . ucwords($current_name) . '.Manage';
             // Update the permission name.
-            $this->permission_model->update_where(
+            $permission = $this->permission_odm_model->find_by('name', $current_permission);
+            if(!empty($permission->id)) {
+                $permission->name = $new_perm_name;
+            }
+            else {
+                $permission = $this->permission_odm_model->insert($add_perm, 'object');
+            }
+            
+            $this->permission_odm_model->save($permission);
+            
+/*            
+ * 
+            $this->permission_odm_model->update_where(
                 'name',
                 'Permissions.' . ucwords($current_name) . '.Manage',
                 array('name' => $new_perm_name)
             );
+ * 
+ * 
+ */
         }
 
         // Reset validation so the role_permissions model can use it.
-        $this->form_validation->reset_validation();
+        //$this->form_validation->reset_validation();
 
         // Save the permissions.
+        /*
         if ($permissions
             && ! $this->role_permission_model->set_for_role($id, $permissions)
            ) {
             $this->error = 'There was an error saving the permissions.';
         }
+         * 
+         */
 
         return $return;
     }
@@ -413,4 +441,6 @@ class Settings extends Admin_Controller
 
         $this->output->set_output($msg);
     }
+    
+
 }

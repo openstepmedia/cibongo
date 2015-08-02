@@ -59,6 +59,8 @@ class Reports extends Admin_Controller
 
         $this->load->model('activities/activity_model');
 
+        $this->load->model('activities/activity_odm_model');
+        
         Assets::add_js(
             array(
                 'bootstrap',
@@ -127,6 +129,13 @@ class Reports extends Admin_Controller
                                      ->order_by($this->activity_model->get_created_field(), 'asc')
                                      ->find_all()
             );
+            
+            $activities_odm = $this->activity_odm_model->qb()
+                ->getQuery()
+                ->execute();                    
+            
+            Template::set('activities_odm', $activities_odm);
+            
             $modules = Modules::list_modules();
             sort($modules);
             Template::set('modules', $modules);
