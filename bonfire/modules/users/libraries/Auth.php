@@ -858,12 +858,19 @@ class Auth {
         list($user_id, $test_token) = explode('~', $cookie);
 
         // Try to pull a match from the database
+        $user = $this->ci->user_odm_model->find_by(array(
+            'id' => $user_id, 
+            'token' => $test_token,
+        ));
+        /*
         $this->ci->db->where(array('user_id' => $user_id, 'token' => $test_token));
-
         $query = $this->ci->db->get('user_cookies');
-        if ($query->num_rows() != 1) {
+        if ($query->num_rows() != 1) { return;}
+        */
+        if(empty($user->id)) {
             return;
         }
+        
         // Save logged in status to reduce db access.
         $this->logged_in = true;
 
@@ -874,7 +881,7 @@ class Auth {
         // If a session doesn't exist, refresh the autologin token and start the
         // session.
         // Grab the current user info for the session.
-        $this->ci->load->model('users/user_odm_model');
+        //$this->ci->load->model('users/user_odm_model');
         $user = $this->ci->user_odm_model->find($user_id);
 
         if (!$user) {
@@ -908,9 +915,26 @@ class Auth {
         }
         $token = random_string('alnum', 128);
 
+        $user = $this->ci->user_odm_model->find($user_id);
+
+        $user->cookies = array(
+            'user_id' => $user_id,
+            'token' => $token,
+            'created_on' => $this->getLoginTimestamp(),
+        );
+        $return = $this->ci->user_odm_model->save($user);
+        
         // If an old token was not provided, create a new one.
+        /*
         if (empty($old_token)) {
             // Create a new token
+            $user->cookies = array(
+                'user_id' => $user_id,
+                'token' => $token,
+                'created_on' => $this->getLoginTimestamp(),
+            );
+            $this->ci->user_odm_model->save($user);
+
             $this->ci->db->insert(
                     'user_cookies', array(
                 'user_id' => $user_id,
@@ -928,6 +952,9 @@ class Auth {
         }
 
         if ($this->ci->db->affected_rows()) {
+         * 
+         */
+        if($return) {
             // Create the autologin cookie
             $this->ci->input->set_cookie(
                     'autologin', $user_id . '~' . $token, $this->ci->settings_lib->item('auth.remember_length')
@@ -955,6 +982,7 @@ class Auth {
             $this->ci->load->helper('cookie');
         }
         $cookie = get_cookie('autologin');
+        
         if ($cookie) {
             list($user_id, $token) = explode('~', $cookie);
 
@@ -962,15 +990,25 @@ class Auth {
             delete_cookie('autologin');
 
             // Clean up the database
+            $user = $this->ci->user_odm_model->find($user_id);
+            $user->cookies = null;
+            $this->ci->user_odm_model->save($user);
+
+            /*
             $this->ci->db->where('user_id', $user_id)
                     ->where('token', $token)
                     ->delete('user_cookies');
+             * 
+             */
         }
 
         // Perform a clean up of any autologins older than 2 months.
+        $this->ci->user_odm_model->delete_autologins($this->getLoginTimestamp(strtotime('2 months ago')));
+        /*
         $this->ci->db->where('created_on <', $this->getLoginTimestamp(strtotime('2 months ago')));
-
         $this->ci->db->delete('user_cookies');
+         * 
+         */
     }
 
     //--------------------------------------------------------------------------

@@ -104,7 +104,7 @@ class User_odm_model extends BF_ODM_Model
         ),
     );
 
-    /** @var array Metadata for the model's database fields. */
+    /** @var array Metadata for the model's database fields. 
     protected $field_info = array(
         array('name' => 'id', 'primary_key' => 1),
         array('name' => 'created_on'),
@@ -127,7 +127,7 @@ class User_odm_model extends BF_ODM_Model
         array('name' => 'activate_hash'),
         array('name' => 'force_password_reset'),
     );
-
+*/
     //--------------------------------------------------------------------------
 
     /**
@@ -388,6 +388,8 @@ class User_odm_model extends BF_ODM_Model
      *
      * @return boolean|array An array of objects with the name of each role and
      * the number of users in that role, else false.
+     * 
+     * @see bonfire/modules/roles/controllers/Settings.php
      */
     public function count_by_roles()
     {
@@ -404,9 +406,15 @@ class User_odm_model extends BF_ODM_Model
         }
          * 
          */
-
-
-
+        $users = $this->find_all();
+        foreach($users as $user) {
+            if(isset($results[$user->role->role_name])) {
+                $results[$user->role->role_name]++;
+            }
+            else {
+                $results[$user->role->role_name] = 1;
+            }
+        }
         return $results;
     }
 
@@ -949,5 +957,17 @@ class User_odm_model extends BF_ODM_Model
                 //->delete('login_attempts');
     }
     
+    public function delete_autologins($created_on) 
+    {
+        //$this->ci->db->where('created_on <', $this->getLoginTimestamp(strtotime('2 months ago')));
+        //$this->ci->db->delete('user_cookies');
+        $users = parent::find_all();
+        foreach($users as $user) {
+            if(!empty($user->cookies) && $user->cookies->created_on < $created_on) {
+                $user->cookies = null;
+                $this->save($user);
+            }
+        }
+    }
 }
 //end User_model

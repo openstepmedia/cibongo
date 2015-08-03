@@ -207,3 +207,6 @@ $lang['us_forced_password_reset_note']	= 'Due to security reasons, you must choo
 $lang['us_back_to']					= 'Back to ';
 $lang['us_no_account']              = 'No account?';
 $lang['us_force_password_reset']    = 'Force password reset on next login';
+
+$lang['us_user_meta_header']    = 'Meta Fields';
+

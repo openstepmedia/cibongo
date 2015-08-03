@@ -1,5 +1,5 @@
 <?php
-require "../vendor/autoload.php";
+
 
 use Doctrine\Common\ClassLoader,
     Doctrine\ODM\MongoDB\Configuration,

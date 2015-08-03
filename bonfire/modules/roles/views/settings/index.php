@@ -1,11 +1,3 @@
-<?php
-
-$roleCount = array();
-foreach ($role_counts as $r) {
-    $roleCount[$r->role_name] = $r->count;
-}
-
-?>
 <style>
 th.type {
     width: 10em;
@@ -29,7 +21,7 @@ th.users {
             <?php foreach ($roles as $role) : ?>
 			<tr>
 				<td><?php echo anchor(SITE_AREA . "/settings/roles/edit/{$role->id}", $role->role_name); ?></td>
-				<td class='text-center'><?php echo isset($roleCount[$role->role_name]) ? $roleCount[$role->role_name] : 0; ?></td>
+				<td class='text-center'><?php echo isset($role_counts[$role->role_name]) ? $role_counts[$role->role_name] : 0; ?></td>
 				<td><?php e($role->description); ?></td>
 			</tr>
     		<?php endforeach; ?>

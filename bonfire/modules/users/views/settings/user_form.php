@@ -59,7 +59,7 @@ echo form_open($this->uri->uri_string(), array('class' => 'form-horizontal', 'au
     $canManageUser = false;
     if (! isset($user)) {
         $canManageUser = true;
-    } elseif ($this->auth->has_permission('Permissions.' . ucfirst($user->role_name) . '.Manage')) {
+    } elseif ($this->auth->has_permission('Permissions.' . ucfirst($user->role->role_name) . '.Manage')) {
         $canManageUser = true;
     }
     if ($canManageUser && $this->auth->has_permission('Bonfire.Roles.Manage')) :
@@ -71,15 +71,15 @@ echo form_open($this->uri->uri_string(), array('class' => 'form-horizontal', 'au
             <div class="controls">
                 <select name="role_id" id="role_id" class="chzn-select <?php echo $controlClass; ?>">
                     <?php
-                    if (! empty($roles) && is_array($roles)) :
+                    if (! empty($roles) ) : // && is_array($roles)) :
                         foreach ($roles as $role) :
                             if ($this->auth->has_permission('Permissions.' . ucfirst($role->role_name) . '.Manage')) :
                                 // The selected role is the role assigned to the
                                 // user or the site's default role.
-                                $selectedRole = isset($user) ? ($user->role_id == $role->role_id)
+                                $selectedRole = isset($user) ? ($user->role->id == $role->id)
                                     : ($role->default == 1);
                     ?>
-                    <option value="<?php echo $role->role_id; ?>" <?php echo set_select('role_id', $role->role_id, $selectedRole); ?>>
+                    <option value="<?php echo $role->id; ?>" <?php echo set_select('role_id', $role->id, $selectedRole); ?>>
                         <?php e(ucfirst($role->role_name)); ?>
                     </option>
                     <?php
@@ -103,7 +103,7 @@ echo form_open($this->uri->uri_string(), array('class' => 'form-horizontal', 'au
     </fieldset>
     <?php
     if (isset($user)
-        && $this->auth->has_permission('Permissions.' . ucfirst($user->role_name) . '.Manage')
+        && $this->auth->has_permission('Permissions.' . ucfirst($user->role->role_name) . '.Manage')
         && $user->id != $this->auth->user_id()
         && ($user->banned || $user->deleted)
     ) :

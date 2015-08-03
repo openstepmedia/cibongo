@@ -384,13 +384,14 @@ $config['sess_table_name']		= 'sessions';
 $config['sess_match_useragent'] = true; // May duplicate sessions for Safari users when true.
 
 // CI 3 Session Variables
-$config['sess_driver'] = 'database';
+//$config['sess_driver'] = 'database';
+$config['sess_driver'] = 'files';
 $config['sess_regenerate_destroy'] = false;
 
 // If you use a different database table name, update
 // /bonfire/migrations/043_Add_ci3_sessions.php
 // accordingly or create the table manually.
-$config['sess_save_path'] = 'ci3_sessions';
+$config['sess_save_path'] = '/tmp/ci3_sessions';
 
 /*
 |--------------------------------------------------------------------------

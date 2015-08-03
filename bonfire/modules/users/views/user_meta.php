@@ -1,3 +1,6 @@
+<?php if(!empty($meta_fields)) : ?>
+<legend><?php echo lang('us_user_meta_header'); ?></legend>
+<?php endif; ?>
 <?php
 
 if (! empty($meta_fields)) :

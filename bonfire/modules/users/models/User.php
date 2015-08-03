@@ -73,6 +73,9 @@ class User
     /** @MongoDB\Raw */
     public $login_attempts = array();
     
+    /** contains array user metadata **/
+    /** @MongoDB\Raw */
+    public $meta = array();
     
     
 }

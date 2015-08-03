@@ -68,13 +68,17 @@ class Settings extends Admin_Controller
         $this->auth->restrict($this->permissionManage);
 
         // Fetch roles for the filter and the list.
+        /*
         $roles = $this->role_model->select('role_id, role_name')
                                   ->where('deleted', 0)
                                   ->order_by('role_name', 'asc')
                                   ->find_all();
+        */
+        $roles = $this->role_odm_model->find_all_by('deleted', 0);
+        
         $orderedRoles = array();
         foreach ($roles as $role) {
-            $orderedRoles[$role->role_id] = $role;
+            $orderedRoles[$role->id] = $role;
         }
         Template::set('roles', $orderedRoles);
 
@@ -100,34 +104,38 @@ class Settings extends Admin_Controller
         }
 
         // Actions done, now display the view.
-        $where = array('users.deleted' => 0);
+        $where = array('deleted' => 0);
 
         // Filters
         if (preg_match('{first_letter-([A-Z])}', $filter, $matches)) {
             $filterType = 'first_letter';
             $firstLetter = $matches[1];
             Template::set('first_letter', $firstLetter);
-        } elseif (preg_match('{role_id-([0-9]*)}', $filter, $matches)) {
+        } elseif (preg_match('{role_id-(.*)}', $filter, $matches)) {
             $filterType = 'role_id';
-            $roleId = (int) $matches[1];
+            $roleId = $matches[1];
         } else {
             $filterType = $filter;
         }
 
+        //$user_info = $this->user_odm_model->get_field_info();
+
+
         switch ($filterType) {
             case 'inactive':
-                $where['users.active'] = 0;
+                $where['active'] = 0;
                 break;
             case 'banned':
-                $where['users.banned'] = 1;
+                $where['banned'] = 1;
                 break;
             case 'deleted':
-                $where['users.deleted'] = 1;
+                $where['deleted'] = 1;
                 break;
             case 'role_id':
-                $where['users.role_id'] = $roleId;
+                
+                $where['role'] = $this->role_odm_model->find($roleId);
                 foreach ($roles as $role) {
-                    if ($role->role_id == $roleId) {
+                    if ($role->id == $roleId) {
                         Template::set('filter_role', $role->role_name);
                         break;
                     }
@@ -136,7 +144,7 @@ class Settings extends Admin_Controller
             case 'first_letter':
                 // @todo Determine whether this needs to be changed to become
                 // usable with databases other than MySQL
-                $where['SUBSTRING( LOWER(username), 1, 1)='] = $firstLetter;
+                $where['username'] = new \MongoRegex('/^' . $firstLetter . '/i');
                 break;
             case 'all':
                 // Nothing to do
@@ -147,7 +155,12 @@ class Settings extends Admin_Controller
         }
 
         // Fetch the users to display
-        $all_users_by = $this->user_odm_model->find_all_by($where);
+        //print "<pre>where:"; print_r($where); exit;
+        $users = $this->user_odm_model->find_all_by($where);
+        
+        //$vars = get_class_methods($users); print "<pre>vars:" . $users->count(); print_r($vars); exit;
+        
+        
         /*
         $this->user_model->limit($this->limit, $offset)
                          ->where($where)
@@ -169,7 +182,8 @@ class Settings extends Admin_Controller
          */
         
         
-        Template::set('users', $this->user_odm_model->find_all());
+        Template::set('users', $users);
+    
 
         // Used as the view's index_url and the base for the pager's base_url.
         $indexUrl = site_url(SITE_AREA . '/settings/users/index') . '/';
@@ -181,7 +195,7 @@ class Settings extends Admin_Controller
         $this->pager['base_url']    = "{$indexUrl}{$filter}/";
         $this->pager['per_page'] = $this->limit;
         //$this->pager['total_rows']  = $this->user_model->where($where)->count_all();
-        $this->pager['total_rows']  = count($all_users_by);
+        $this->pager['total_rows']  = $users->count();
         $this->pager['uri_segment'] = 6;
 
         $this->pagination->initialize($this->pager);
@@ -278,7 +292,8 @@ class Settings extends Admin_Controller
         $metaFields = config_item('user_meta_fields');
         Template::set('meta_fields', $metaFields);
 
-        $user = $this->user_model->find_user_and_meta($userId);
+        //$user = $this->user_model->find_user_and_meta($userId);
+        $user = $this->user_odm_model->find($userId);
 
         if (isset($_POST['save'])) {
             if ($this->saveUser('update', $userId, $metaFields, $user->role_name)) {
@@ -313,13 +328,16 @@ class Settings extends Admin_Controller
             );
         }
 
-        Template::set(
-            'roles',
+        $roles = $this->role_odm_model->find_all_by('deleted', 0);
+        Template::set('roles',$roles);
+        /*
             $this->role_model->select('role_id, role_name, default')
                              ->where('deleted', 0)
                              ->order_by('role_name', 'asc')
                              ->find_all()
         );
+         * 
+         */
         Template::set('user', $user);
         Template::set('languages', unserialize($this->settings_lib->item('site.languages')));
         Template::set('toolbar_title', lang('us_edit_user'));

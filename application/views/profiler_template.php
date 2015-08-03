@@ -346,7 +346,7 @@ window.onload = function() {
                     <td><?php echo $query['query']; ?></td>
                 </tr>
                 <?php
-                    else :
+                    elseif(is_array($query)) :
                         foreach ($query as $time => $val) :
                 ?>
                 <tr>

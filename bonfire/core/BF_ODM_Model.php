@@ -413,6 +413,8 @@ class BF_ODM_Model extends CI_Model
         $where = is_array($field) ? $field : array($field => $value);
 
         $qb = $this->qb();
+
+        $field_info = $this->get_field_info();
         
         if ($type == 'or') {
             //$this->db->or_where($where);
@@ -422,9 +424,15 @@ class BF_ODM_Model extends CI_Model
         } else {
             //$this->db->where($where);
             foreach($where as $field => $value) {
-                $qb->field($field)->equals($value);
+                if(isset($field_info[$field]['reference']) && is_object($value)) {
+                    $qb->field($field)->references($value);
+                }
+                else {
+                    $qb->field($field)->equals($value);
+                }
             }
         }
+        
         return $this->run_qb($qb);
     }
 
@@ -1455,7 +1463,7 @@ class BF_ODM_Model extends CI_Model
      *
      * @return array Returns the database field metadata for this model.
      */
-    public function get_field_info()
+    public function get_field_info($field=null)
     {
         if (empty($this->field_info)) {
             $this->field_info = $this->doctrineodm->dm
