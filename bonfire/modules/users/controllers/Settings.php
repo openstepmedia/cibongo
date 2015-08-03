@@ -68,13 +68,7 @@ class Settings extends Admin_Controller
         $this->auth->restrict($this->permissionManage);
 
         // Fetch roles for the filter and the list.
-        /*
-        $roles = $this->role_model->select('role_id, role_name')
-                                  ->where('deleted', 0)
-                                  ->order_by('role_name', 'asc')
-                                  ->find_all();
-        */
-        $roles = $this->role_odm_model->find_all_by('deleted', 0);
+        $roles = $this->role_odm_model->find_all_by('deleted', null);
         
         $orderedRoles = array();
         foreach ($roles as $role) {
@@ -104,7 +98,7 @@ class Settings extends Admin_Controller
         }
 
         // Actions done, now display the view.
-        $where = array('deleted' => 0);
+        $where = array('deleted' => null);
 
         // Filters
         if (preg_match('{first_letter-([A-Z])}', $filter, $matches)) {
@@ -118,9 +112,6 @@ class Settings extends Admin_Controller
             $filterType = $filter;
         }
 
-        //$user_info = $this->user_odm_model->get_field_info();
-
-
         switch ($filterType) {
             case 'inactive':
                 $where['active'] = 0;
@@ -129,10 +120,10 @@ class Settings extends Admin_Controller
                 $where['banned'] = 1;
                 break;
             case 'deleted':
-                $where['deleted'] = 1;
+                //not null
+                $where['deleted'] = array('$ne' => null);
                 break;
             case 'role_id':
-                
                 $where['role'] = $this->role_odm_model->find($roleId);
                 foreach ($roles as $role) {
                     if ($role->id == $roleId) {
@@ -155,13 +146,8 @@ class Settings extends Admin_Controller
         }
 
         // Fetch the users to display
-        //print "<pre>where:"; print_r($where); exit;
         $users = $this->user_odm_model->find_all_by($where);
-        
-        //$vars = get_class_methods($users); print "<pre>vars:" . $users->count(); print_r($vars); exit;
-        
-        
-        /*
+       /*
         $this->user_model->limit($this->limit, $offset)
                          ->where($where)
                          ->select(
@@ -302,7 +288,7 @@ class Settings extends Admin_Controller
 
         if (isset($_POST['save'])) {
             if ($this->saveUser('update', $userId, $metaFields, $user->role_name)) {
-                $user = $this->user_model->find_user_and_meta($userId);
+                $user = $this->user_odm_model->find_user_and_meta($userId);
                 $logName = empty($user->display_name) ? ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email) : $user->display_name;
                 log_activity(
                     $this->auth->user_id(),
@@ -362,7 +348,7 @@ class Settings extends Admin_Controller
     {
         $this->auth->restrict($this->permissionManage);
 
-        if ($this->user_model->force_password_reset()) {
+        if ($this->user_odm_model->force_password_reset()) {
             // Resets are in place, so log the user out.
             $this->auth->logout();
 
@@ -387,7 +373,7 @@ class Settings extends Admin_Controller
      */
     private function _ban($userId, $banMessage = '')
     {
-        $this->user_model->update(
+        $this->user_odm_model->update(
             $userId,
             array(
             'banned'        => 1,
@@ -405,7 +391,7 @@ class Settings extends Admin_Controller
      */
     private function _delete($id)
     {
-        $user = $this->user_model->find($id);
+        $user = $this->user_odm_model->find($id);
         if (! isset($user)) {
             Template::set_message(lang('us_invalid_user_id'), 'error');
             redirect(SITE_AREA . '/settings/users');
@@ -421,8 +407,8 @@ class Settings extends Admin_Controller
             redirect(SITE_AREA . '/settings/users');
         }
 
-        if ($this->user_model->delete($id)) {
-                $user = $this->user_model->find($id);
+        if ($this->user_odm_model->delete($id)) {
+                $user = $this->user_odm_model->find($id);
             $logName = empty($user->display_name) ? ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email) : $user->display_name;
             log_activity(
                 $this->auth->user_id(),
@@ -430,8 +416,8 @@ class Settings extends Admin_Controller
                 'users'
             );
                 Template::set_message(lang('us_action_deleted'), 'success');
-        } elseif (! empty($this->user_model->error)) {
-            Template::set_message(lang('us_action_not_deleted') . $this->user_model->error, 'error');
+        } elseif (! empty($this->user_odm_model->error)) {
+            Template::set_message(lang('us_action_not_deleted') . $this->user_odm_model->error, 'error');
         }
     }
 
@@ -444,7 +430,7 @@ class Settings extends Admin_Controller
      */
     private function _purge($id)
     {
-        $this->user_model->delete($id, true);
+        $this->user_odm_model->delete($id, true);
         Template::set_message(lang('us_action_purged'), 'success');
 
         // Purge any user meta for this user, also.
@@ -463,10 +449,10 @@ class Settings extends Admin_Controller
      */
     private function _restore($id)
     {
-        if ($this->user_model->update($id, array('users.deleted' => 0))) {
+        if ($this->user_odm_model->update($id, array('users.deleted' => 0))) {
             Template::set_message(lang('us_user_restored_success'), 'success');
-        } elseif (! empty($this->user_model->error)) {
-            Template::set_message(lang('us_user_restored_error') . $this->user_model->error, 'error');
+        } elseif (! empty($this->user_odm_model->error)) {
+            Template::set_message(lang('us_user_restored_error') . $this->user_odm_model->error, 'error');
         }
     }
 
@@ -626,23 +612,23 @@ class Settings extends Admin_Controller
 
         // Set the user status (activate/deactivate the user).
         if ($status == 1) {
-            $result = $this->user_model->admin_activation($userId);
+            $result = $this->user_odm_model->admin_activation($userId);
                 $type = lang('bf_action_activate');
         } else {
-            $result = $this->user_model->admin_deactivation($userId);
+            $result = $this->user_odm_model->admin_deactivation($userId);
                 $type = lang('bf_action_deactivate');
             }
 
         if (! $result) {
-            if (! empty($this->user_model->error)) {
-                Template::set_message(lang('us_err_status_error') . $this->user_model->error, 'error');
+            if (! empty($this->user_odm_model->error)) {
+                Template::set_message(lang('us_err_status_error') . $this->user_odm_model->error, 'error');
             }
             return;
         }
 
         // If the status change succeeded, log the change and, if necessary,
         // send the user activation email.
-        $user = $this->user_model->find($userId);
+        $user = $this->user_odm_model->find($userId);
         $logName = $this->settings_lib->item('auth.use_own_names') ? $this->current_user->username
             : ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email);
 
@@ -652,7 +638,7 @@ class Settings extends Admin_Controller
             'users'
         );
 
-                $message = lang('us_active_status_changed');
+        $message = lang('us_active_status_changed');
 
         // If the user was activated and the email is not suppressed, send it.
         if ($status == 1 && ! $suppressEmail) {

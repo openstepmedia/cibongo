@@ -257,11 +257,15 @@ class User_odm_model extends BF_ODM_Model
         unset($data['password'], $password);
 
         // Get the default role if the role_id was not provided.
-        if (! isset($data['role_id'])) {
+        if (! isset($data['role'])) {
             if (! class_exists('role_odm_model', false)) {
                 $this->load->model('roles/role_odm_model');
             }
-            $data['role_id'] = $this->role_odm_model->default_role_id();
+            $data['role'] = $this->role_odm_model->default_role();
+        }
+        
+        if(! isset($data['deleted'])) {
+            $data['deleted'] = null;
         }
 
         $id = parent::insert($data);

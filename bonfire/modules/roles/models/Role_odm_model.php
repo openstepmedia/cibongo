@@ -318,11 +318,26 @@ class Role_odm_model extends BF_ODM_Model
      */
     public function default_role_id()
     {
-        $this->db->where('default', 1);
+        $role = $this->find_by('default', 1);
+        //$this->db->where('default', 1);
+        //$query = $this->db->get($this->table_name);
+        if ($role->count() == 1) {
+            return $role->id;
+        }
 
-        $query = $this->db->get($this->table_name);
-        if ($query->num_rows() == 1) {
-            return (int)$query->row()->role_id;
+        return false;
+    }
+
+    /**
+     * Returns the id of the default role.
+     *
+     * @return integer|boolean ID of the default role or false.
+     */
+    public function default_role()
+    {
+        $role = $this->find_by('default', 1);
+        if ($role->count() == 1) {
+            return $role;
         }
 
         return false;

@@ -419,7 +419,12 @@ class BF_ODM_Model extends CI_Model
         if ($type == 'or') {
             //$this->db->or_where($where);
             foreach($where as $field => $value) {
-                $qb->addOr($qb->expr()->field($field)->equals(new \MongoRegex('/^' . $value . '/i')));
+                if(is_string($value)) {
+                    $qb->addOr($qb->expr()->field($field)->equals(new \MongoRegex('/^' . $value . '/i')));
+                }
+                else {
+                    $qb->addOr($qb->expr()->field($field)->equals($value));
+                }
             }
         } else {
             //$this->db->where($where);

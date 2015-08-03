@@ -58,7 +58,7 @@ class User
     public $created_on;
     
     /** @MongoDB\Date */
-    public $deleted;
+    public $deleted = null;
     
     /** @MongoDB\ReferenceOne(targetDocument="bonfire\modules\roles\models\Role", simple=true) */
     public $role;

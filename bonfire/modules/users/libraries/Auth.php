@@ -181,7 +181,6 @@ class Auth {
             // Bad password
             Template::set_message(lang('us_bad_email_pass'), 'error');
             $this->increase_login_attempts($login);
-
             return false;
         }
 
@@ -204,7 +203,7 @@ class Auth {
 
             // Save the hash to the db so it can be confirmed later.
             $this->ci->user_odm_model->update_where(
-                    'id', $user->id, array('reset_hash' => $hash, 'reset_by' => strtotime("+24 hours"))
+                'id', $user->id, array('reset_hash' => $hash, 'reset_by' => strtotime("+24 hours"))
             );
 
             $this->ci->session->set_userdata('pass_check', $hash);
@@ -218,7 +217,7 @@ class Auth {
 
         // The login was successfully validated, so setup the session
         $this->setupSession(
-            $user->id, $user->username, $user->password_hash, $user->email, $user->role_id, $remember, '', $user->username
+            $user->id, $user->username, $user->password_hash, $user->email, $user->role->id, $remember, '', $user->username
         );
 
         // Save the login info
@@ -696,7 +695,14 @@ class Auth {
      * @return boolean True/false on success/failure.
      */
     private function setupSession(
-    $user_id, $username, $password_hash, $email, $role_id, $remember = false, $old_token = null, $user_name = ''
+            $user_id, 
+            $username, 
+            $password_hash, 
+            $email, 
+            $role_id, 
+            $remember = false, 
+            $old_token = null, 
+            $user_name = ''
     )
     {
         // What are we using as login identity?
@@ -718,7 +724,6 @@ class Auth {
         }
 
         // Save the user's session info
-
         $this->ci->session->set_userdata(
                 array(
                     'user_id' => $user_id,
@@ -858,10 +863,13 @@ class Auth {
         list($user_id, $test_token) = explode('~', $cookie);
 
         // Try to pull a match from the database
-        $user = $this->ci->user_odm_model->find_by(array(
-            'id' => $user_id, 
-            'token' => $test_token,
-        ));
+        $user = $this->ci->user_odm_model->find($user_id);
+        
+        //Check if autlogin token matches
+        if(!($test_token == $user->cookies['token'])) {
+            return;
+        }
+
         /*
         $this->ci->db->where(array('user_id' => $user_id, 'token' => $test_token));
         $query = $this->ci->db->get('user_cookies');
@@ -889,7 +897,14 @@ class Auth {
         }
 
         $this->setupSession(
-                $user->id, $user->username, $user->password_hash, $user->email, $user->role_id, true, $test_token, $user->username
+            $user->id, 
+            $user->username, 
+            $user->password_hash, 
+            $user->email, 
+            $user->role, 
+            true, 
+            $test_token, 
+            $user->username
         );
     }
 
@@ -918,7 +933,6 @@ class Auth {
         $user = $this->ci->user_odm_model->find($user_id);
 
         $user->cookies = array(
-            'user_id' => $user_id,
             'token' => $token,
             'created_on' => $this->getLoginTimestamp(),
         );
@@ -959,7 +973,6 @@ class Auth {
             $this->ci->input->set_cookie(
                     'autologin', $user_id . '~' . $token, $this->ci->settings_lib->item('auth.remember_length')
             );
-
             return true;
         }
 
