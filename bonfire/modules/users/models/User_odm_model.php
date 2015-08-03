@@ -86,7 +86,7 @@ class User_odm_model extends BF_ODM_Model
         array(
             'field' => 'role_id',
             'label' => 'lang:us_role',
-            'rules' => 'trim|max_length[2]',
+            'rules' => 'trim',
         ),
     );
 
@@ -347,6 +347,14 @@ class User_odm_model extends BF_ODM_Model
         // Only set 'timezone' if one was selected from the 'timezones' select.
         if (! empty($post_data['timezones'])) {
             $data['timezone'] = $post_data['timezones'];
+        }
+
+        // Set role:
+        if (! empty($post_data['role_id'])) {
+            if (! class_exists('role_odm_model', false)) {
+                $this->load->model('roles/role_odm_model');
+            }
+            $data['role'] = $this->role_odm_model->find($post_data['role_id']);
         }
 
         // Only set 'password' if a value was provided (so the user's profile can

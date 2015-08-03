@@ -66,6 +66,9 @@ class Home extends MX_Controller {
         $this->load->library('users/auth');
         $this->set_current_user();
 
+        $this->load->model('users/user_odm_model');
+        $user = $this->user_odm_model->find_by('username', 'admin');
+        
         Template::render();
     }
 

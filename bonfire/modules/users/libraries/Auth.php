@@ -167,7 +167,7 @@ class Auth {
 
         // Check whether the account has been soft deleted. The >= 1 check ensures
         // this will still work if the deleted field is a UNIX timestamp.
-        if ($user->deleted >= 1) {
+        if ($user->deleted instanceof DateTime && $user->deleted->getTimestamp() >= 1) {
             Template::set_message(
                     sprintf(
                             lang('us_account_deleted'), html_escape(settings_item("site.system_email"))

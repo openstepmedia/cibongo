@@ -211,8 +211,7 @@ class Emailer
         $this->ci->load->model('settings/settings_model', 'settings_model');
 
         $this->ci->email->initialize(
-            $this->ci->settings_model->select(array('name', 'value'))
-                                     ->find_all_by('module', 'email')
+            $this->ci->settings_odm_model->find_all_by('module', 'email')
         );
         $this->ci->email->clear(true);
         $this->ci->email->set_newline("\r\n");

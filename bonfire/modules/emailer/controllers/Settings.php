@@ -95,8 +95,7 @@ class Settings extends Admin_Controller
         }
 
         // Load our current settings
-        $settings = $this->settings_model->select('name,value')
-                                         ->find_all_by('module', 'email');
+        $settings = $this->settings_odm_model->find_all_by('module', 'email');
 
         Template::set($settings);
         Template::set('toolbar_title', 'Email Settings');
@@ -169,7 +168,7 @@ class Settings extends Admin_Controller
         $offset = $this->uri->segment(5);
 
         $this->load->library('pagination');
-        $this->load->model('emailer/emailer_model');
+        $this->load->model('emailer/emailer_odm_model');
 
         // Deleting anything?
         if (isset($_POST['delete'])) {
@@ -178,10 +177,10 @@ class Settings extends Admin_Controller
                 $result = true;
                 $emailError = '';
                 foreach ($checked as $pid) {
-                    $deleted = $this->emailer_model->delete($pid);
+                    $deleted = $this->emailer_odm_model->delete($pid);
                     if (! $deleted) {
                         $result = false;
-                        $emailError = $this->emailer_model->error;
+                        $emailError = $this->emailer_odm_model->error;
                     }
                 }
 

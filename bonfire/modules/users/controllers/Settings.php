@@ -225,7 +225,7 @@ class Settings extends Admin_Controller
 
         if (isset($_POST['save'])) {
             if ($id = $this->saveUser('insert', null, $metaFields)) {
-                $user = $this->user_model->find($id);
+                $user = $this->user_odm_model->find($id);
                 $logName = empty($user->display_name) ? ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email) : $user->display_name;
                 log_activity(
                     $this->auth->user_id(),
@@ -245,6 +245,9 @@ class Settings extends Admin_Controller
             );
         }
 
+        $roles = $this->role_odm_model->find_all_by('deleted', 0);
+        Template::set('roles',$roles);
+/*        
         Template::set(
             'roles',
             $this->role_model->select('role_id, role_name, default')
@@ -252,6 +255,8 @@ class Settings extends Admin_Controller
                              ->order_by('role_name', 'asc')
                              ->find_all()
         );
+ * 
+ */
         Template::set('languages', unserialize($this->settings_lib->item('site.languages')));
         Template::set('toolbar_title', lang('us_create_user'));
 
@@ -478,7 +483,7 @@ class Settings extends Admin_Controller
      */
     private function saveUser($type = 'insert', $id = 0, $metaFields = array(), $currentRoleName = '')
     {
-        $this->form_validation->set_rules($this->user_model->get_validation_rules($type));
+        $this->form_validation->set_rules($this->user_odm_model->get_validation_rules($type));
 
         $extraUniqueRule = '';
         $usernameRequired = '';
@@ -511,7 +516,8 @@ class Settings extends Admin_Controller
         if (has_permission($this->permissionManage)
             && has_permission("Permissions.{$currentRoleName}.Manage")
            ) {
-            $this->form_validation->set_rules('role_id', 'lang:us_role', 'required|trim|max_length[2]|is_numeric');
+            //$this->form_validation->set_rules('role_id', 'lang:us_role', 'required|trim|max_length[2]|is_numeric');
+            $this->form_validation->set_rules('role_id', 'lang:us_role', 'required|trim');
         }
 
         $metaData = array();
@@ -537,8 +543,8 @@ class Settings extends Admin_Controller
         }
 
         // Compile the core user elements to save.
-        $data = $this->user_model->prep_data($this->input->post());
-
+        $data = $this->user_odm_model->prep_data($this->input->post());
+//print "<pre>data:"; print_r($data); exit;
         $result = false;
         if ($type == 'insert') {
             $activationMethod = $this->settings_lib->item('auth.user_activation_method');
@@ -549,18 +555,18 @@ class Settings extends Admin_Controller
                 $data['active'] = 1;
             }
 
-            $id = $this->user_model->insert($data);
-            if (is_numeric($id)) {
+            $id = $this->user_odm_model->insert($data);
+            if (!empty($id)) {
                 $result = $id;
             }
         } else {
-            $result = $this->user_model->update($id, $data);
+            $result = $this->user_odm_model->update($id, $data);
         }
 
         // Save any meta data for this user. Don't try to save meta data on a
         // failed insert ($id is not numeric).
-        if (is_numeric($id) && ! empty($metaData)) {
-            $this->user_model->save_meta_for($id, $metaData);
+        if (!empty($id) && ! empty($metaData)) {
+            $this->user_odm_model->save_meta_for($id, $metaData);
         }
 
         // Any modules needing to save data?
