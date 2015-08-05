@@ -28,17 +28,12 @@ defined('BASEPATH') || exit('No direct script access allowed');
  * @link       http://cibonfire.com/docs/activities
  *
  */
-class Activity_odm_model extends BF_Model {
+class Activity_odm_model extends BF_ODM_Model {
 
     /**
      * @var string Name of the table
      */
-    protected $table_name = 'activities';
-
-    /**
-     * @var string Name of the primary key
-     */
-    protected $key = 'activity_id';
+    protected $repository = 'bonfire\modules\activities\models\Activity';
 
     /**
      * @var bool Whether to use soft deletes
@@ -78,6 +73,7 @@ class Activity_odm_model extends BF_Model {
      */
     public function find_by_module($modules = array())
     {
+        
     }
 
     /**
@@ -89,6 +85,7 @@ class Activity_odm_model extends BF_Model {
      */
     public function findTopModules($limit = 5)
     {
+        
     }
 
     /**
@@ -100,6 +97,7 @@ class Activity_odm_model extends BF_Model {
      */
     public function findTopUsers($limit = 5)
     {
+        
     }
 
     /**
@@ -113,21 +111,28 @@ class Activity_odm_model extends BF_Model {
      */
     public function log_activity($user_id = null, $activity = '', $module = 'any')
     {
-    }
-    
-    public function qb()
-    {
-        //return query builder
-        return $this->doctrineodm->dm
-                ->createQueryBuilder('bonfire\modules\activities\models\Activity');
-    }
-    
-    public function save($obj) 
-    {
-        $this->doctrine->dm->persist($obj);
-        $this->doctrine->dm->flush();
-    }
+        if (is_null($user_id)) {
+            $this->error = lang('activities_log_no_user_id');
+            return false;
+        }
 
+        if (empty($activity)) {
+            $this->error = lang('activities_log_no_activity');
+            return false;
+        }
+
+        $this->load->model('users/user_odm_model');
+        $user = $this->user_odm_model->find($user_id);
+        
+        return $this->insert(array(
+            'user' => $user,
+            'username' => $user->username,
+            'activity' => $activity,
+            'module' => $module,
+            'created' => new DateTime(),
+            'deleted' => NULL,
+        ));
+    }
 }
 
-/* /activities/models/activity_model.php */
+/* /activities/models/activity_odm_model.php */

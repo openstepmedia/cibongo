@@ -123,18 +123,26 @@ class Reports extends Admin_Controller
             Template::set('hasPermissionDeleteModule', $this->auth->has_permission($this->permissionDeleteModule));
             Template::set('hasPermissionDeleteUser', $this->auth->has_permission($this->permissionDeleteUser));
 
-            Template::set(
-                'activities',
+            $user_id = $this->auth->user_id();
+            
+            
+            log_activity(
+                '54189174ec67aee70c8b4693',
+                'Log Message: ' . time(),
+                'users'
+            );
+            
+            
+            $activities = $this->activity_odm_model->find_all_by('deleted', null);
+            Template::set('activities', $activities);
+            /*
                 $this->activity_model->where($this->activity_model->get_table() . '.' . $this->activity_model->get_deleted_field(), 0)
                                      ->order_by($this->activity_model->get_created_field(), 'asc')
                                      ->find_all()
             );
+            */
             
-            $activities_odm = $this->activity_odm_model->qb()
-                ->getQuery()
-                ->execute();                    
-            
-            Template::set('activities_odm', $activities_odm);
+            //Template::set('activities_odm', $activities_odm);
             
             $modules = Modules::list_modules();
             sort($modules);
@@ -322,21 +330,30 @@ class Reports extends Admin_Controller
     private function getActivity($which = 'activity_user', $filterValue = false)
     {
         $postedWhichSelect = $this->input->post("{$which}_select");
-
+        $activity_content = array();
+        
         // Check whether $filterValue has anything in it
         if ($filterValue === false) {
             $filterValue = $postedWhichSelect == '' ? $this->uri->segment(5) : $postedWhichSelect;
         }
-
+//print "filterValue:$filterValue";exit;
         if (isset($_POST['delete'])) {
             $this->deleteActivity($which, $filterValue);
         }
 
         $activityDeletedField = $this->activity_model->get_deleted_field();
         $activityTable        = $this->activity_model->get_table();
+
+        /*
         $userDeletedField     = $this->user_model->get_deleted_field();
         $userKey              = $this->user_model->get_key();
         $userTable            = $this->user_model->get_table();
+         * 
+         */
+
+        $userDeletedField     = $this->user_odm_model->get_deleted_field();
+        $userKey              = $this->user_odm_model->get_key();
+        $userTable            = $this->user_odm_model->get_table();
 
         // Set default values
         $name    = lang('activities_all');
@@ -377,9 +394,17 @@ class Reports extends Admin_Controller
                 break;
             case 'activity_own':
             default:
+                $where =  array($activityDeletedField => null);
+                if(!empty($filterValue) && !('all' == $filterValue)) {
+                    $filterValue = $this->user_odm_model->find($filterValue);
+                    $where = 'user';
+                }
+                
                 if ($this->hasPermissionViewUser) {
+                    
                     // Use the same order_by for the user drop-down/select as is
                     // used on the index page
+                    /*
                     $this->user_model->where("{$userTable}.{$userDeletedField}", 0)
                                      ->order_by('username', 'asc');
 
@@ -389,13 +414,22 @@ class Reports extends Admin_Controller
                             $name = $e->username;
                         }
                     }
+                     * 
+                     */
+                    $users = $this->user_odm_model->find_all_by($userDeletedField, null);
+                    foreach($users as $user) {
+                        $options[$user->id] = $user->username;
+                        if(!empty($filterValue->id) && $filterValue->id == $user->id) {
+                            $name = $user->username;
+                        }
+                    }
+                    
                     Template::set('hasPermissionDeleteUser', $this->auth->has_permission($this->permissionDeleteUser));
                 } elseif ($this->hasPermissionViewOwn) {
                     $options = array();
                     $options[$this->auth->user_id()] = $this->auth->user()->username;
                     $name = $this->auth->user()->username;
                 }
-                $where = 'user_id';
                 break;
         }
 
@@ -411,24 +445,34 @@ class Reports extends Admin_Controller
             )
         );
 
-        $this->activity_model->order_by($where, 'asc');
+        //$this->activity_model->order_by($where, 'asc');
 
         // Apply the filter, if there is one
         if (empty($filterValue) || $filterValue == 'all') {
-            $total = $this->activity_model->count_by("{$activityTable}.{$activityDeletedField}", 0);
+            //$total = $this->activity_model->count_by("{$activityTable}.{$activityDeletedField}", 0);
+            $total = 10;
         } else {
             $where = $where == 'activity_id' ? 'activity_id <' : $where;
+            
+            $where = array(
+                $where => $filterValue,
+                $activityDeletedField => null,
+            );
+            
+            $total = $this->activity_odm_model->find_all_by($where)->count();
+            /*
             $total = $this->activity_model->where($where, $filterValue)
                                           ->where("{$activityTable}.{$activityDeletedField}", 0)
                                           ->count_by($where, $filterValue);
-
+            */
             // Set this again for use in the main query
-            $this->activity_model->where($where, $filterValue);
+            //$this->activity_model->where($where, $filterValue);
         }
 
         // Does user have permission to see own records?
         if (! $this->hasPermissionViewOwn) {
-            $this->activity_model->where("{$activityTable}.user_id !=", $this->auth->user_id());
+            //$this->activity_model->where("{$activityTable}.user_id !=", $this->auth->user_id());
+            //$this->activity_odm_model->where("{$activityTable}.user_id !=", $this->auth->user_id());
         }
 
         // Pagination
@@ -444,9 +488,10 @@ class Reports extends Admin_Controller
 
         $this->pagination->initialize($this->pager);
 
-        $activityCreated = $this->activity_model->get_created_field();
+        $activityCreated = $this->activity_odm_model->get_created_field();
 
         // Get the activities
+        /*
         $this->activity_model->select(
             array('activity', 'module', "{$activityTable}.{$activityCreated} AS created", 'username')
         )
@@ -454,8 +499,14 @@ class Reports extends Admin_Controller
                              ->join($userTable, "{$activityTable}.user_id = {$userTable}.{$userKey}", 'left')
                              ->order_by("{$activityTable}.{$activityCreated}", 'desc') // Most recent on top
                              ->limit($limit, $offset);
-
         Template::set('activity_content', $this->activity_model->find_all());
+         * 
+         */
+                         
+//print "<pre>where:"; Kint::dump($where);
+        $activity_content = $this->activity_odm_model->find_all_by($where);
+        
+        Template::set('activity_content', $activity_content);
         Template::set('filter', $postedWhichSelect);
         Template::set('select_options', $options);
 

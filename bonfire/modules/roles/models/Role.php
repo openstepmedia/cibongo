@@ -21,9 +21,6 @@ class Role
     /** @MongoDB\Int */
     public $can_delete = 0;
 
-    /** @MongoDB\Int */
-    public $deleted = 0;
-
     /** @MongoDB\String */
     public $login_destination;
 
@@ -31,8 +28,11 @@ class Role
     public $default_context = 'content';
 
     /** @MongoDB\ReferenceMany(targetDocument="bonfire\modules\permissions\models\Permission", simple=true) */
-    public $role_permissions = array();    
+    public $role_permissions = array();  
     
+    /** @MongoDB\Date(nullable=true) */
+    public $deleted = null;
+
     /**
      * Used by the Permissions module for cleaning up deleted permission records
      * 

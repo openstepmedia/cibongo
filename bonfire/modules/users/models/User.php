@@ -51,15 +51,6 @@ class User
     /** @MongoDB\Int */
     public $force_password_reset = 0;
     
-    /** @MongoDB\Date */
-    public $last_login;
-    
-    /** @MongoDB\Date */
-    public $created_on;
-    
-    /** @MongoDB\Date */
-    public $deleted = null;
-    
     /** @MongoDB\ReferenceOne(targetDocument="bonfire\modules\roles\models\Role", simple=true) */
     public $role;
     
@@ -77,5 +68,12 @@ class User
     /** @MongoDB\Raw */
     public $meta = array();
     
+    /** @MongoDB\Date */
+    public $last_login;
     
+    /** @MongoDB\Date */
+    public $created_on;
+    
+    /** @MongoDB\Date(nullable=true) */
+    public $deleted = null;
 }

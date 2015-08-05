@@ -321,7 +321,7 @@ class Auth {
     {
         // Move permission to lowercase for easier checking.
         $permission = strtolower($permission);
-//print "<pre>perm:$permission"; exit;
+//print "<pre>perm:$permission";
         // If no role is provided, assume it's for the current logged in user.
         if (empty($role_id)) {
             $role_id = $this->role_id();
@@ -337,6 +337,7 @@ class Auth {
             $permission_id = $permissions[$permission];
 
             if (isset($this->role_permissions[$role_id][$permission_id])) {
+//print "<pre>has permission:$permission</pre>";                
                 return true;
             }
         } elseif ($override) {
