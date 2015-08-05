@@ -37,9 +37,9 @@ class BF_ODM_Model extends CI_Model
     /** @var string The primary key of the table. Used as the 'id' throughout. */
     protected $key = 'id';
 
-    protected $default_sort_key = 'id';
+    protected $default_sort_key = '';
     
-    protected $default_sort_order = 'asc';
+    protected $default_sort_order = '';
 
     /**
      * @var string Field name to use for the created time column in the DB table
