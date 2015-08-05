@@ -287,7 +287,7 @@ class Settings extends Admin_Controller
         $user = $this->user_odm_model->find($userId);
 
         if (isset($_POST['save'])) {
-            if ($this->saveUser('update', $userId, $metaFields, $user->role_name)) {
+            if ($this->saveUser('update', $userId, $metaFields, $user->role->role_name)) {
                 $user = $this->user_odm_model->find_user_and_meta($userId);
                 $logName = empty($user->display_name) ? ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email) : $user->display_name;
                 log_activity(
@@ -473,10 +473,11 @@ class Settings extends Admin_Controller
 
         $extraUniqueRule = '';
         $usernameRequired = '';
-
+        $table = $this->user_odm_model->get_table();
+        
         if ($type != 'insert') {
             $_POST['id'] = $id;
-            $extraUniqueRule = ',users.id';
+            $extraUniqueRule = ",{$table}.id";
 
             // If a value has been entered for the password, pass_confirm is required.
             // Otherwise, the pass_confirm field could be left blank and the form
@@ -496,8 +497,9 @@ class Settings extends Admin_Controller
             $usernameRequired = 'required|';
         }
 
-        $this->form_validation->set_rules('username', 'lang:bf_username', "{$usernameRequired}trim|max_length[30]|unique[users.username{$extraUniqueRule}]");
-        $this->form_validation->set_rules('email', 'lang:bf_email', "required|trim|valid_email|max_length[254]|unique[users.email{$extraUniqueRule}]");
+        
+        $this->form_validation->set_rules('username', 'lang:bf_username', "{$usernameRequired}trim|max_length[30]|unique[{$table}.username{$extraUniqueRule}]");
+        $this->form_validation->set_rules('email', 'lang:bf_email', "required|trim|valid_email|max_length[254]|unique[{$table}.email{$extraUniqueRule}]");
 
         if (has_permission($this->permissionManage)
             && has_permission("Permissions.{$currentRoleName}.Manage")
@@ -531,6 +533,12 @@ class Settings extends Admin_Controller
         // Compile the core user elements to save.
         $data = $this->user_odm_model->prep_data($this->input->post());
 //print "<pre>data:"; print_r($data); exit;
+        
+        //tack on user meta fields
+        if(!empty($metaData)) {
+            $data['meta'] = $metaData;
+        }
+        
         $result = false;
         if ($type == 'insert') {
             $activationMethod = $this->settings_lib->item('auth.user_activation_method');
@@ -540,8 +548,9 @@ class Settings extends Admin_Controller
                 // Activate the user automatically
                 $data['active'] = 1;
             }
-
+            
             $id = $this->user_odm_model->insert($data);
+            
             if (!empty($id)) {
                 $result = $id;
             }

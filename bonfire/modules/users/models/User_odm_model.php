@@ -981,5 +981,6 @@ class User_odm_model extends BF_ODM_Model
             }
         }
     }
+    
 }
 //end User_model

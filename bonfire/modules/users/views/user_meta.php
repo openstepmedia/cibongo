@@ -56,7 +56,7 @@ if (! empty($meta_fields)) :
             && is_callable('state_select')
         ) :
             $stateFieldId = $field['name'];
-            $stateValue = isset($user->$field['name']) ? $user->$field['name'] : $defaultState;
+            $stateValue = isset($user->meta[$field['name']]) ? $user->meta[$field['name']] : $defaultState;
 ?>
 <div class="control-group<?php echo form_error($field['name']) ? ' error' : ''; ?>">
     <label class="control-label" for="<?php echo $field['name']; ?>"><?php echo lang('user_meta_state'); ?></label>
@@ -77,14 +77,14 @@ if (! empty($meta_fields)) :
             && is_callable('country_select')
         ) :
             $countryFieldId = $field['name'];
-            $countryValue = isset($user->$field['name']) ? $user->$field['name'] : $defaultCountry;
+            $countryValue = isset($user->meta[$field['name']]) ? $user->meta[$field['name']] : $defaultCountry;
 ?>
 <div class="control-group<?php echo form_error($field['name']) ? ' error' : ''; ?>">
     <label class="control-label" for="<?php echo $field['name']; ?>"><?php echo lang('user_meta_country'); ?></label>
     <div class="controls">
         <?php
         echo country_select(
-            set_value($field['name'], isset($user->$field['name']) ? $user->$field['name'] : $defaultCountry),
+            set_value($field['name'], $countryValue),
             $defaultCountry,
             $field['name'],
             'span6 chzn-select'

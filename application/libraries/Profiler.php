@@ -400,7 +400,7 @@ class CI_Profiler
         if (empty($compiled_userdata)) {
             return '';
         }
-
+//Kint::dump($compiled_userdata);
         $output = array();
         foreach ($compiled_userdata as $key => $val) {
             if ($val === true) {

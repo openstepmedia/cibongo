@@ -157,7 +157,7 @@ class Users extends Front_Controller
         if (isset($_POST['save'])) {
             $user_id = $this->current_user->id;
             if ($this->saveUser('update', $user_id, $meta_fields)) {
-                $user = $this->user_model->find($user_id);
+                $user = $this->user_odm_model->find($user_id);
                 $log_name = empty($user->display_name) ?
                     ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email)
                     : $user->display_name;
@@ -178,7 +178,8 @@ class Users extends Front_Controller
         }
 
         // Get the current user information.
-        $user = $this->user_model->find_user_and_meta($this->current_user->id);
+        //$user = $this->user_model->find_user_and_meta($this->current_user->id);
+        $user = $this->user_odm_model->find($this->current_user->id);
 
         if ($this->siteSettings['auth.password_show_labels'] == 1) {
             Assets::add_js(
@@ -188,7 +189,7 @@ class Users extends Front_Controller
         }
 
         // Generate password hint messages.
-        $this->user_model->password_hints();
+        $this->user_odm_model->password_hints();
 
         Template::set('user', $user);
         Template::set('languages', unserialize($this->settings_lib->item('site.languages')));
@@ -539,7 +540,7 @@ class Users extends Front_Controller
                 return false;
             }
 
-            $extraUniqueRule = ',users.id';
+            $extraUniqueRule = ',user.id';
         }
 
         $this->form_validation->set_rules($this->user_model->get_validation_rules($type));
@@ -551,8 +552,11 @@ class Users extends Front_Controller
             $usernameRequired = 'required|';
         }
 
-        $this->form_validation->set_rules('username', 'lang:bf_username', "{$usernameRequired}trim|max_length[30]|unique[users.username{$extraUniqueRule}]");
-        $this->form_validation->set_rules('email', 'lang:bf_email', "required|trim|valid_email|max_length[254]|unique[users.email{$extraUniqueRule}]");
+        //$this->form_validation->set_rules('username', 'lang:bf_username', "{$usernameRequired}trim|max_length[30]|unique[users.username{$extraUniqueRule}]");
+        //$this->form_validation->set_rules('email', 'lang:bf_email', "required|trim|valid_email|max_length[254]|unique[users.email{$extraUniqueRule}]");
+
+        $this->form_validation->set_rules('username', 'lang:bf_username', "{$usernameRequired}trim|max_length[30]|unique[user.username{$extraUniqueRule}]");
+        $this->form_validation->set_rules('email', 'lang:bf_email', "required|trim|valid_email|max_length[254]|unique[user.email{$extraUniqueRule}]");
 
         // If a value has been entered for the password, pass_confirm is required.
         // Otherwise, the pass_confirm field could be left blank and the form validation
@@ -562,6 +566,7 @@ class Users extends Front_Controller
         }
 
         $userIsAdmin = isset($this->current_user) && $this->current_user->role_id == 1;
+        
         $metaData = array();
         foreach ($metaFields as $field) {
             $adminOnlyField = isset($field['admin_only']) && $field['admin_only'] === true;
@@ -585,7 +590,12 @@ class Users extends Front_Controller
         }
 
         // Compile our core user elements to save.
-        $data = $this->user_model->prep_data($this->input->post());
+        $data = $this->user_odm_model->prep_data($this->input->post());
+        
+        if(!empty($metaData)) {
+            $data['meta'] = $metaData;
+        }
+        
         $result = false;
 
         if ($type == 'insert') {
@@ -595,17 +605,20 @@ class Users extends Front_Controller
                 $data['active'] = 1;
             }
 
-            $id = $this->user_model->insert($data);
+            $id = $this->user_odm_model->insert($data);
             if (is_numeric($id)) {
                 $result = $id;
             }
         } else {
-            $result = $this->user_model->update($id, $data);
+            $result = $this->user_odm_model->update($id, $data);
         }
 
+        /*
         if (is_numeric($id) && ! empty($metaData)) {
             $this->user_model->save_meta_for($id, $metaData);
         }
+         * 
+         */
 
         // Trigger event after saving the user.
         Events::trigger('save_user', $payload);

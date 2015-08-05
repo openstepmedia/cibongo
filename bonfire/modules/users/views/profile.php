@@ -37,7 +37,7 @@ if (empty($renderPayload) && isset($this->auth)) {
     </div>
     <?php
     endif;
-    if (isset($user) && $user->role_name == 'Banned') :
+    if (isset($user) && $user->role->role_name == 'Banned') :
     ?>
     <div data-dismiss="alert" class="alert alert-error">
         <?php echo lang('us_banned_admin_note'); ?>

@@ -274,15 +274,25 @@ class BF_Form_validation extends CI_Form_validation
         // Extract the table and field from the first parameter.
         list($table, $field) = explode('.', $fields[0], 2);
 
-        // Setup the db request.
+        // Setup the db request. $table is the repository name
+        $query = $this->CI->doctrineodm->dm
+                ->createQueryBuilder($table)
+                ->field($field)->equals($value);
+        
+        
+        //$document = $this->doctrineodm->dm->find($table, $id);
+        /*
         $this->CI->db->select($field)
                      ->from($table)
                      ->where($field, $value)
                      ->limit(1);
+         * 
+         */
 
         // Check whether a second parameter was passed to be used as an
         // "AND NOT EQUAL" where clause
         // eg "select * from users where users.name='test' AND users.id != 4
+        // second param must be a field in same collection
         if (isset($fields[1])) {
             // Extract the table and field from the second parameter
             list($where_table, $where_field) = explode('.', $fields[1], 2);
@@ -291,13 +301,15 @@ class BF_Form_validation extends CI_Form_validation
             // add "AND NOT EQUAL" where clause.
             $where_value = $this->CI->input->post($where_field);
             if (isset($where_value)) {
-                $this->CI->db->where("{$where_table}.{$where_field} <>", $where_value);
+                //$this->CI->db->where("{$where_table}.{$where_field} <>", $where_value);
+                $query->field($where_field)->notEqual($where_value);
             }
         }
 
         // If any rows are returned from the database, validation fails
-        $query = $this->CI->db->get();
-        if ($query->row()) {
+        //$query = $this->CI->db->get();
+        $document = $query->getQuery()->execute();
+        if ($document->count()) {
             $this->CI->form_validation->set_message('unique', lang('bf_form_unique'));
             return false;
         }
