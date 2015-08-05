@@ -76,10 +76,7 @@ class Settings extends Admin_Controller
         Template::set('role_counts', $this->user_odm_model->count_by_roles());
         Template::set('total_users', $this->user_odm_model->count_all());
 
-        $roles = $this->role_odm_model->qb()
-                ->field('deleted')->equals(0)
-                ->getQuery()                
-                ->execute();
+        $roles = $this->role_odm_model->find_all_by('deleted', null);
         
         //Template::set('roles', $this->role_model->where('deleted', 0)->find_all());
         Template::set('roles', $roles);

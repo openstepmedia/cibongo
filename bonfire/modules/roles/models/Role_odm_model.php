@@ -406,4 +406,71 @@ class Role_odm_model extends BF_ODM_Model
          * 
          */
     }
+    
+    public function install()
+    {
+        //delete all roles:
+        $roles = $this->find_all();
+        $this->soft_deletes = false;
+        $this->skip_validation = true;
+        foreach($roles as $role) {
+            parent::delete($role);
+        }
+        
+        $roles = array();
+        $roles[] = array(
+            'role_name' => 'Administrator',
+            'can_delete' => 0,
+            'default' => 0,
+            'default_context' => 'content',
+            'deleted' => null,
+            'description' => 'Has Full Control over site',
+            'login_destination' => '',
+        );
+        $roles[] = array(
+            'role_name' => 'Developer',
+            'can_delete' => 1,
+            'default' => 0,
+            'default_context' => 'content',
+            'deleted' => null,
+            'description' => 'Developer Access',
+            'login_destination' => '',
+        );
+        $roles[] = array(
+            'role_name' => 'User',
+            'can_delete' => 1,
+            'default' => 1,
+            'default_context' => 'content',
+            'deleted' => null,
+            'description' => 'User Access',
+            'login_destination' => '',
+        );
+        
+        $this->load->model('permissions/permission_odm_model');
+        $permissions_cursor = $this->permission_odm_model->find_all();
+        
+        $permissions = array();
+        foreach($permissions_cursor as $permission) {
+            $permissions[] = $permission;
+        }
+        
+        foreach($roles as $role) {
+            $role['role_permissions'] = $permissions;
+            $this->insert($role);
+        }
+        
+        //update users:
+        $admin_role = $this->find_by('role_name', 'Administrator');
+        
+        $this->load->model('users/user_odm_model');
+        $users = $this->user_odm_model->find_all();
+        
+        foreach($users as $user) {
+            $user->role = $admin_role;
+            $this->user_odm_model->save($user);
+        }
+        
+        
+    }
+    
 }

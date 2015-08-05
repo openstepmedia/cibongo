@@ -37,6 +37,10 @@ class BF_ODM_Model extends CI_Model
     /** @var string The primary key of the table. Used as the 'id' throughout. */
     protected $key = 'id';
 
+    protected $default_sort_key = 'id';
+    
+    protected $default_sort_order = 'asc';
+
     /**
      * @var string Field name to use for the created time column in the DB table
      * if $set_created is enabled.
@@ -438,6 +442,10 @@ class BF_ODM_Model extends CI_Model
             }
         }
         
+        if(!empty($this->default_sort_key) && !empty($this->default_sort_order)) {
+            $qb->sort($this->default_sort_key, $this->default_sort_order);
+        }
+        
         return $this->run_qb($qb);
     }
 
@@ -515,10 +523,6 @@ class BF_ODM_Model extends CI_Model
             $document->{$field} = $value;
         }
         $status = $this->save($document);
-        //return $document->id;
-        
-        //$status = $this->db->insert($this->table_name, $data);
-        
         
         if ($status == false) {
             $this->error = $this->get_db_error_message();
@@ -705,14 +709,20 @@ class BF_ODM_Model extends CI_Model
 
         // Set the where clause to be used in the update/delete below.
         //$this->db->where($this->key, $id);
-
+        if(is_object($id) && !empty($id->id)) {
+            $document = $id;
+            $id = $document->id;
+        }
+        else {
+            $document = $this->doctrineodm->dm->getRepository($this->repository)->find($id);
+        }
+        
+        $result = false;
         if ($this->soft_deletes === true) {
             $data = array($this->deleted_field => 1);
             if ($this->log_user === true) {
                 $data[$this->deleted_by_field] = $this->auth->user_id();
             }
-            
-            $document = $this->doctrineodm->dm->getRepository($this->repository)->findOneBy($where);
                     
             foreach($data as $field => $value) {
                 $document->{$field} = $value;
@@ -722,7 +732,6 @@ class BF_ODM_Model extends CI_Model
             //$result = $this->db->update($this->table_name, $data);
             $result = true;
         } else {
-            $document = $this->doctrineodm->dm->getRepository($this->repository)->findOneBy($where);
             if(!empty($document->id)) {
                 $this->doctrineodm->dm->remove($document);
                 $this->doctrineodm->dm->flush();

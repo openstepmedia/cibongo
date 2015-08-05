@@ -69,6 +69,9 @@ class Home extends MX_Controller {
         $this->load->model('users/user_odm_model');
         $user = $this->user_odm_model->find_by('username', 'admin');
         
+        //$this->load->model('roles/role_odm_model');
+        //$this->role_odm_model->install();
+        //exit;
         Template::render();
     }
 

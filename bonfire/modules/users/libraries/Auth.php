@@ -321,7 +321,7 @@ class Auth {
     {
         // Move permission to lowercase for easier checking.
         $permission = strtolower($permission);
-
+//print "<pre>perm:$permission"; exit;
         // If no role is provided, assume it's for the current logged in user.
         if (empty($role_id)) {
             $role_id = $this->role_id();

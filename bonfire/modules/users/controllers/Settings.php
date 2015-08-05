@@ -319,20 +319,11 @@ class Settings extends Admin_Controller
             );
         }
 
-        $roles = $this->role_odm_model->find_all_by('deleted', 0);
+        $roles = $this->role_odm_model->find_all_by('deleted', null);
         Template::set('roles',$roles);
-        /*
-            $this->role_model->select('role_id, role_name, default')
-                             ->where('deleted', 0)
-                             ->order_by('role_name', 'asc')
-                             ->find_all()
-        );
-         * 
-         */
         Template::set('user', $user);
         Template::set('languages', unserialize($this->settings_lib->item('site.languages')));
         Template::set('toolbar_title', lang('us_edit_user'));
-
         Template::set_view('users/settings/user_form');
         Template::render();
     }
