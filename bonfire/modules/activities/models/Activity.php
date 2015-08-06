@@ -40,7 +40,7 @@ class Activity
     public $document_n = null;
 
     /** @MongoDB\Date */
-    public $created;
+    public $created_on;
 
     /** @MongoDB\Date(nullable=true) */
     public $deleted = null;

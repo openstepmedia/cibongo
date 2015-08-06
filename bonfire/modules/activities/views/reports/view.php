@@ -73,7 +73,7 @@ $hasPermissionDeleteUser   = isset($hasPermissionDeleteUser) ? $hasPermissionDel
                 <td><span class="icon-user"></span>&nbsp;<?php e($activity->username); ?></td>
                 <td><?php echo $activity->activity; ?></td>
                 <td><?php echo $activity->module; ?></td>
-                <td><?php echo $activity->created->format('M j, Y g:i A'); ?></td>
+                <td><?php echo $activity->created_on->format('M j, Y g:i A'); ?></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

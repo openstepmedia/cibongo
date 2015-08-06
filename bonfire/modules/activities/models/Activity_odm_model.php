@@ -129,7 +129,7 @@ class Activity_odm_model extends BF_ODM_Model {
             'username' => $user->username,
             'activity' => $activity,
             'module' => $module,
-            'created' => new DateTime(),
+            'created_on' => new DateTime(),
             'deleted' => NULL,
         ));
     }

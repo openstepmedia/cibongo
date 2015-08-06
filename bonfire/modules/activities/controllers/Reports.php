@@ -383,13 +383,16 @@ class Reports extends Admin_Controller
                 Template::set('hasPermissionDeleteModule', $this->auth->has_permission($this->permissionDeleteModule));
                 break;
             case 'activity_date':
-                foreach ($this->activity_model->find_all_by($activityDeletedField, 0) as $e) {
-                    $options[$e->activity_id] = $e->created_on;
-                    if ($filterValue == $e->activity_id) {
-                        $name = $e->created_on;
+                foreach ($this->activity_odm_model->find_all_by($activityDeletedField, null) as $e) {
+                    $options[$e->id] = $e->created_on->format('M j, Y g:i A');
+                    if ($filterValue == $e->id) {
+                        $name = $e->created_on->format('M j, Y g:i A');
                     }
                 }
-                $where = 'activity_id';
+                $where =  array($activityDeletedField => null);
+                if(!empty($filterValue) && !('all' == $filterValue)) {
+                    $where['created_on'] = $filterValue;
+                }
                 Template::set('hasPermissionDeleteDate', $this->auth->has_permission($this->permissionDeleteDate));
                 break;
             case 'activity_own':
@@ -401,21 +404,6 @@ class Reports extends Admin_Controller
                 }
                 
                 if ($this->hasPermissionViewUser) {
-                    
-                    // Use the same order_by for the user drop-down/select as is
-                    // used on the index page
-                    /*
-                    $this->user_model->where("{$userTable}.{$userDeletedField}", 0)
-                                     ->order_by('username', 'asc');
-
-                    foreach ($this->user_model->find_all() as $e) {
-                        $options[$e->id] = $e->username;
-                        if ($filterValue == $e->id) {
-                            $name = $e->username;
-                        }
-                    }
-                     * 
-                     */
                     $users = $this->user_odm_model->find_all_by($userDeletedField, null);
                     foreach($users as $user) {
                         $options[$user->id] = $user->username;
