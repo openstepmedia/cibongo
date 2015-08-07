@@ -60,6 +60,7 @@ class Developer extends Admin_Controller
 
         Assets::add_module_css('builder', 'builder.css');
         Assets::add_module_js('builder', 'modulebuilder.js');
+
         Template::set_block('sub_nav', 'developer/_sub_nav');
         Template::set_block('sidebar', 'developer/sidebar');
     }

@@ -104,6 +104,7 @@ if (isset($shortcut_data) && is_array($shortcut_data['shortcut_keys'])) {
                             </ul>
                         </div>
                     </div>
+
                     <?php echo Contexts::render_menu('text', 'normal'); ?>
                 </div><!-- /.nav-collapse -->
 			</div><!-- /container -->

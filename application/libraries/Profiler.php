@@ -400,7 +400,7 @@ class CI_Profiler
         if (empty($compiled_userdata)) {
             return '';
         }
-//Kint::dump($compiled_userdata);
+
         $output = array();
         foreach ($compiled_userdata as $key => $val) {
             if ($val === true) {
@@ -409,6 +409,8 @@ class CI_Profiler
                 $output[$key] = $this->CI->lang->line('bf_profiler_false');
             } elseif (is_array($val)) {
                 $output[$key] = htmlspecialchars(stripslashes(print_r($val, true)));
+            } elseif (is_object($val)) {
+                $output[$key] = htmlspecialchars(stripslashes(print_r(get_class_vars($val), true)));
             } else {
                 $output[$key] = htmlspecialchars(stripslashes($val));
             }

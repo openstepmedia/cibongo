@@ -269,8 +269,8 @@ $lang['bf_form_valid_url']  = '%s must contain a valid URL.';
 // if you want to localize your menus
 //------------------------------------------------------------------------------
 $lang['bf_menu_activities']     = 'Activities';
-$lang['bf_menu_code_builder']   = 'Code Builder';
-$lang['bf_menu_db_tools']       = 'Database Tools';
+$lang['bf_menu_code_builder']   = 'Code Builder (SQL)';
+$lang['bf_menu_db_tools']       = 'Database Tools (SQL)';
 $lang['bf_menu_db_maintenance'] = 'Maintenance';
 $lang['bf_menu_db_backup']      = 'Backups';
 $lang['bf_menu_emailer']        = 'Email Queue';
@@ -288,6 +288,12 @@ $lang['bf_menu_sysinfo']        = 'System Information';
 $lang['bf_menu_template']       = 'Template';
 $lang['bf_menu_translate']      = 'Translate';
 $lang['bf_menu_users']          = 'Users';
+
+$lang['bf_menu_code_builder_odm']   = 'Code Builder (MongoDB)';
+$lang['bf_menu_db_odm_tools']       = 'Database Tools (MongoDB)';
+$lang['bf_menu_db_odm_maintenance'] = 'Maintenance';
+$lang['bf_menu_db_odm_backup']      = 'Backups';
+
 
 //------------------------------------------------------------------------------
 // Anything that doesn't follow the 'bf_*' convention:

@@ -217,7 +217,13 @@ class Auth {
 
         // The login was successfully validated, so setup the session
         $this->setupSession(
-            $user->id, $user->username, $user->password_hash, $user->email, $user->role->id, $remember, '', $user->username
+            $user->id, $user->username, 
+            $user->password_hash, 
+            $user->email, 
+            $user->role->id, 
+            $remember, 
+            '', 
+            $user->username
         );
 
         // Save the login info
@@ -902,7 +908,7 @@ class Auth {
             $user->username, 
             $user->password_hash, 
             $user->email, 
-            $user->role, 
+            $user->role->id, 
             true, 
             $test_token, 
             $user->username

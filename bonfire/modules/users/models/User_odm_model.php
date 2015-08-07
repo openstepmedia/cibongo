@@ -963,8 +963,10 @@ class User_odm_model extends BF_ODM_Model
     {
         $where = array('ip_address' => $ip_address, 'login' => $login);
         $user = parent::find_by($where);
-        $user->login_attempts = array();
-        parent::save($user);
+        if(!empty($user->id)) {
+            $user->login_attempts = array();
+            parent::save($user);
+        }
                 //->or_where('time <', $this->getLoginTimestamp(time() - $expires))
                 //->delete('login_attempts');
     }

@@ -9,6 +9,7 @@
         ?>
         <li class='parent'>
             <div class="nav-header"><?php echo $file; ?></div>
+
             <ul class="nav">
                 <?php foreach ($name as $line => $namer) : ?>
                 <li><?php echo anchor($docsDir . '/' . str_replace($docsExt, '', $line), $namer); ?></li>

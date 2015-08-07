@@ -399,14 +399,13 @@ class Settings extends Admin_Controller
         }
 
         if ($this->user_odm_model->delete($id)) {
-                $user = $this->user_odm_model->find($id);
             $logName = empty($user->display_name) ? ($this->settings_lib->item('auth.use_usernames') ? $user->username : $user->email) : $user->display_name;
             log_activity(
                 $this->auth->user_id(),
                 lang('us_log_delete') . ": {$logName}",
                 'users'
             );
-                Template::set_message(lang('us_action_deleted'), 'success');
+            Template::set_message(lang('us_action_deleted'), 'success');
         } elseif (! empty($this->user_odm_model->error)) {
             Template::set_message(lang('us_action_not_deleted') . $this->user_odm_model->error, 'error');
         }
@@ -424,9 +423,6 @@ class Settings extends Admin_Controller
         $this->user_odm_model->delete($id, true);
         Template::set_message(lang('us_action_purged'), 'success');
 
-        // Purge any user meta for this user, also.
-        $this->db->where('user_id', $id)->delete('user_meta');
-
         // Any modules needing to save data?
         Events::trigger('purge_user', $id);
     }
@@ -440,7 +436,7 @@ class Settings extends Admin_Controller
      */
     private function _restore($id)
     {
-        if ($this->user_odm_model->update($id, array('users.deleted' => 0))) {
+        if ($this->user_odm_model->update($id, array('users.deleted' => null))) {
             Template::set_message(lang('us_user_restored_success'), 'success');
         } elseif (! empty($this->user_odm_model->error)) {
             Template::set_message(lang('us_user_restored_error') . $this->user_odm_model->error, 'error');

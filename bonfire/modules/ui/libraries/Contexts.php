@@ -354,6 +354,7 @@ class Contexts
             // view it.
             if (self::$ci->auth->has_permission('Bonfire.' . ucfirst($module) . '.View')
                 || self::$ci->auth->has_permission(ucfirst($module) . ".{$ucContext}.View")
+                || 1
             ) {
                 // Drop-down menus?
                 $menu_topic = is_array($config['menu_topic']) && isset($config['menu_topic'][$context]) ?
@@ -371,6 +372,7 @@ class Contexts
 
         // Add any sub-menus and reset the $actions array for the next pass.
         $menu = self::build_sub_menu($context, $ignore_ul);
+ 
         self::$actions = array();
 
         return $menu;
@@ -643,10 +645,18 @@ class Contexts
 
         foreach (self::$actions as $key => $action) {
             $weights[$key]       = $action['weight'];
-            $display_names[$key] = $action['display_name'];
+            
+            if (strpos($action['display_name'], 'lang:') === 0) {
+                $display_names[$key] = lang(str_replace('lang:', '', $action['display_name']));
+                $display_names[$key] = ucwords(str_replace('_', '', $display_names[$key]));
+            }            
+            else {
+                $display_names[$key] = ucwords(str_replace('_', '', $action['display_name']));
+            }
+            
         }
 
-        array_multisort($weights, SORT_DESC, $display_names, SORT_ASC, self::$actions);
+        array_multisort($weights, SORT_DESC, $display_names, SORT_ASC, self::$actions, SORT_ASC);
     }
 
     //--------------------------------------------------------------------------
