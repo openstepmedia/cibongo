@@ -3,7 +3,7 @@
 namespace bonfire\modules\users\models;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 
-/** @MongoDB\Document(collection="user") */
+/** @MongoDB\Document(collection="bf_users") */
 class User
 {
     /** @MongoDB\Id */

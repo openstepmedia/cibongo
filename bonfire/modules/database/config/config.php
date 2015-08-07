@@ -10,4 +10,5 @@ $config['module_config'] = array(
     'menu_topic'  => array(
         'developer' => 'lang:bf_menu_db_tools',
     ),
+    'name' => 'lang:bf_menu_db_tools',
 );

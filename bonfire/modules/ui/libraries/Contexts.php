@@ -653,9 +653,7 @@ class Contexts
             else {
                 $display_names[$key] = ucwords(str_replace('_', '', $action['display_name']));
             }
-            
         }
-
         array_multisort($weights, SORT_DESC, $display_names, SORT_ASC, self::$actions, SORT_ASC);
     }
 

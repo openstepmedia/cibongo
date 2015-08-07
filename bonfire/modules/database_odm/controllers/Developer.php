@@ -42,6 +42,13 @@ class Developer extends Admin_Controller
 
         $this->backup_folder = APPPATH . $this->backup_folder;
 
+        
+        $this->dbName = $this->doctrineodm->dm->getConfiguration()->getDefaultDB();
+        $this->mongo = $collections = $this->doctrineodm->dm
+                ->getConnection()
+                ->getMongo()
+                ->selectDB($this->dbName);
+        
         Assets::add_module_css('database', 'database');
 
         Template::set_block('sub_nav', 'developer/_sub_nav');
@@ -109,13 +116,18 @@ class Developer extends Admin_Controller
             redirect(SITE_AREA . '/developer/database');
         }
 
-        $query = $this->db->get($table);
-        if ($query->num_rows()) {
-            Template::set('rows', $query->result());
+        //$query = $this->db->get($table);
+        $query = $this->mongo->{$table}->find();
+        if ($query->count()) {
+            $rows = array();
+            foreach($query as $row) {
+                $rows[] = $row;
+            }
+            Template::set('rows', $rows);
         }
 
-        Template::set('num_rows', $query->num_rows());
-        Template::set('query', $this->db->last_query());
+        Template::set('num_rows', $query->count());
+        Template::set('query', 'db.' . $table . '.find()');
         Template::set('toolbar_title', sprintf(lang('database_browse'), $table));
 
         Template::render();
@@ -195,8 +207,8 @@ class Developer extends Admin_Controller
             $this->load->library('form_validation');
 
             $this->form_validation->set_rules('file_name', 'lang:database_filename', 'required|trim|max_length[220]');
-            $this->form_validation->set_rules('drop_tables', 'lang:database_drop_tables', 'required|trim|one_of[0,1]');
-            $this->form_validation->set_rules('add_inserts', 'lang:database_add_inserts', 'required|trim|one_of[0,1]');
+            //$this->form_validation->set_rules('drop_tables', 'lang:database_drop_tables', 'required|trim|one_of[0,1]');
+            //$this->form_validation->set_rules('add_inserts', 'lang:database_add_inserts', 'required|trim|one_of[0,1]');
             $this->form_validation->set_rules('file_type', 'lang:database_compress_type', 'required|trim|one_of[txt,gzip,zip]');
             $this->form_validation->set_rules('tables[]', 'lang:database_tables', 'required');
 
@@ -209,12 +221,49 @@ class Developer extends Admin_Controller
                 $filename = "{$this->backup_folder}{$basename}";
 
                 $prefs = array(
-                    'add_drop'   => ($_POST['drop_tables'] == '1'),
-                    'add_insert' => ($_POST['add_inserts'] == '1'),
                     'format'     => $format,
                     'filename'   => $filename,
                     'tables'     => $_POST['tables'],
                 );
+                
+		// Was a Zip file requested?
+		if ($prefs['format'] === 'zip')
+		{
+			// Set the filename if not provided (only needed with Zip files)
+			if ($prefs['filename'] === '')
+			{
+				$prefs['filename'] = (count($prefs['tables']) === 1 ? $prefs['tables'] : $this->db->database)
+							.date('Y-m-d_H-i', time()).'.sql';
+			}
+			else
+			{
+				// If they included the .zip file extension we'll remove it
+				if (preg_match('|.+?\.zip$|', $prefs['filename']))
+				{
+					$prefs['filename'] = str_replace('.zip', '', $prefs['filename']);
+				}
+
+				// Tack on the ".sql" file extension if needed
+				if ( ! preg_match('|.+?\.sql$|', $prefs['filename']))
+				{
+					$prefs['filename'] .= '.sql';
+				}
+			}
+
+			// Load the Zip class and output it
+			$this->load->library('zip');
+			$this->zip->add_data($prefs['filename'], $this->_backup($prefs));
+			return $CI->zip->get_zip();
+		}
+		elseif ($prefs['format'] === 'txt') // Was a text file requested?
+		{
+			return $this->_backup($prefs);
+		}
+		elseif ($prefs['format'] === 'gzip') // Was a Gzip file requested?
+		{
+			return gzencode($this->_backup($prefs));
+		}                
+                
                 $backup = $this->dbutil->backup($prefs);
 
                 $this->load->helper('file');
@@ -464,14 +513,19 @@ class Developer extends Admin_Controller
         // MySQL.
         // ---------------------------------------------------------------------
 
+        $collections = $this->mongo->listCollections();
+        
+        /*
         if (in_array($platform, array('mysql', 'mysqli', 'bfmysqli'))) {
             return $this->db->query('SHOW TABLE STATUS')->result();
         }
-
+        */
+        
         // ---------------------------------------------------------------------
         // All other databases.
         // ---------------------------------------------------------------------
-
+        $platform = 'MongoDB';
+        
         $tables = array();
         $table  = new stdClass();
 
@@ -484,13 +538,17 @@ class Developer extends Admin_Controller
         $table->Data_free    = lang('database_data_free_unsupported');   // The number of allocated but unused bytes.
 
         // Set the metadata for each table.
-        foreach ($this->db->list_tables() as $tableName) {
-            $table->Name = $tableName;
+        foreach ($collections as $collection) {
+            $table->Name = $collection->getName();
+            
+            $table->Rows = $collection->count();
 
-            // Note that MySQL's 'SHOW TABLE STATUS' estimates this value, so, while
-            // this is slower, it should be more accurate.
-            $table->Rows = $this->db->count_all($tableName);
-
+            // @see http://docs.mongodb.org/manual/reference/command/collStats/
+            $stats = $this->mongo->execute("db." . $table->Name . ".stats()");
+            //Kint::dump($stats);
+            $table->Data_length = $stats['retval']['size'];
+            $table->Index_length = $stats['retval']['totalIndexSize'];
+            
             // Use clone() to copy the current state of $table into $tables (otherwise,
             // an array of references to the metadata for the last table is created,
             // which isn't very useful).
@@ -498,5 +556,16 @@ class Developer extends Admin_Controller
         }
 
         return $tables;
+    }
+    
+    private function _backup($prefs) 
+    {
+        //use mongodump command line
+        //mongodump --host mongodb1.example.net --port 37017 --username user --password pass --out /opt/backup/mongodump-2011-10-24
+        //mongodump  --db test --collection collection
+        //$this->load->config('user_meta');
+        $dir = config_item('database_backup_dir');
+        $out = $dir . "/" . $prefs['filename'];
+        $cmd = "mongodump --host $host --port $port --username $user --password $pass --out $out";
     }
 }

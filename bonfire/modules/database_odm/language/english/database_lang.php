@@ -81,10 +81,10 @@ $lang['database_restore_out_unsuccessful']  = '<strong class="text-error">Unsucc
 $lang['database_restore_read_error']        = 'Could not read the file: %s.';
 $lang['database_restore_results']           = 'Restore Results';
 
-$lang['database_title_backup_create']       = 'Create New Backup';
-$lang['database_title_backups']             = 'Database Backups';
-$lang['database_title_maintenance']         = 'Database Maintenance';
-$lang['database_title_restore']             = 'Database Restore';
+$lang['database_title_backup_create']       = 'Create New Backup (MongoDB)';
+$lang['database_title_backups']             = 'Database Backups (MongoDB)';
+$lang['database_title_maintenance']         = 'Database Maintenance (MongoDB)';
+$lang['database_title_restore']             = 'Database Restore (MongoDB)';
 
 $lang['database_apply']                     = 'Apply';
 $lang['database_back_to_tools']             = 'Back to Database Tools';
@@ -98,7 +98,7 @@ $lang['database_no_backups']                = 'No previous backups were found.';
 $lang['database_no_rows']                   = 'No data found for table.';
 $lang['database_no_table_name']             = 'No table name was provided.';
 $lang['database_no_tables']                 = 'No tables were found for the current database.';
-$lang['database_sql_query']                 = 'SQL Query';
+$lang['database_sql_query']                 = 'MongoDB Query';
 $lang['database_table_name']                = 'Table Name';
 $lang['database_tables']                    = 'Tables';
 $lang['database_total_results']             = 'Total Results: %s';

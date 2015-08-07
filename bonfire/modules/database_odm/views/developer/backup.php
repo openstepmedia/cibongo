@@ -14,7 +14,7 @@
     </div>
     <?php
     else :
-        echo form_open(SITE_AREA . '/developer/database/backup', 'class="form-horizontal"');
+        echo form_open(SITE_AREA . '/developer/database_odm/backup', 'class="form-horizontal"');
     ?>
         <fieldset>
             <?php foreach ($tables as $table) : ?>
@@ -23,6 +23,7 @@
             <div class="alert alert-info">
                 <p><?php echo lang('database_backup_warning'); ?></p>
             </div>
+            
             <div class="control-group<?php echo form_error('file_name') ? ' error' : ''; ?>">
                 <label for="file_name" class="control-label"><?php echo lang('database_filename'); ?></label>
                 <div class="controls">
@@ -30,6 +31,7 @@
                     <span class="help-inline"><?php echo form_error('file_name'); ?></span>
                 </div>
             </div>
+            <!--
             <div class="control-group<?php echo form_error('drop_tables') ? ' error' : ''; ?>">
                 <label for="drop_tables" class="control-label"><?php echo lang('database_drop_question'); ?></label>
                 <div class="controls">
@@ -50,6 +52,7 @@
                     <span class="help-inline"><?php echo form_error('add_inserts'); ?></span>
                 </div>
             </div>
+            -->
             <div class="control-group<?php echo form_error('file_type') ? ' error' : ''; ?>">
                 <label for="file_type" class="control-label"><?php echo lang('database_compress_question'); ?></label>
                 <div class="controls">

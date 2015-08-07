@@ -10,5 +10,5 @@ $config['module_config'] = array(
     'menu_topic'  => array(
         'developer' => 'lang:bf_menu_db_odm_tools',
     ),
-    'name' => 'Database Tools (MongoDB)',
+    'name' => 'lang:bf_menu_db_odm_tools',
 );

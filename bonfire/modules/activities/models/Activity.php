@@ -4,7 +4,7 @@ namespace bonfire\modules\activities\models;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 
-/** @MongoDB\Document(collection="activity") */
+/** @MongoDB\Document(collection="bf_activities") */
 class Activity
 {
     /** @MongoDB\Id */

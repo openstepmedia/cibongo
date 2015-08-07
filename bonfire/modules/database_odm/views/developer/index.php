@@ -5,7 +5,7 @@
     </div>
 	<?php 
     else :
-		echo form_open(SITE_AREA . '/developer/database/'); 
+		echo form_open(SITE_AREA . '/developer/database_odm/'); 
 	?>
 		<table class="table table-striped">
 			<thead>
@@ -38,7 +38,7 @@
 				<?php foreach ($tables as $table) : ?>
 				<tr>
                     <td class="column-check"><input type="checkbox" value="<?php e($table->Name); ?>" name="checked[]" /></td>
-                    <td><a href="<?php e(site_url(SITE_AREA . "/developer/database/browse/{$table->Name}")); ?>"><?php e($table->Name); ?></a></td>
+                    <td><a href="<?php e(site_url(SITE_AREA . "/developer/database_odm/browse/{$table->Name}")); ?>"><?php e($table->Name); ?></a></td>
 					<td class='records'><?php echo $table->Rows; ?></td>
                     <td><?php e(is_numeric($table->Data_length) ? byte_format($table->Data_length) : $table->Data_length); ?></td>
                     <td><?php e(is_numeric($table->Index_length) ? byte_format($table->Index_length) : $table->Index_length); ?></td>
