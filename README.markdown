@@ -23,6 +23,8 @@ Thanks to the Bonfire team for a great release. This version uses MongoDB as the
 - Simple email queue system
 - 2-step installer
 - Uses multiple-environment config files.
+
+
 - Migration-ready (using either raw SQL or Database Forge commands)
 - Log view/maintenance
 
