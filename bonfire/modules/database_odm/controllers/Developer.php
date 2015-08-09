@@ -42,14 +42,14 @@ class Developer extends Admin_Controller
 
         $this->backup_folder = APPPATH . $this->backup_folder;
 
-        
-        $this->dbName = $this->doctrineodm->dm->getConfiguration()->getDefaultDB();
-        $this->mongo = $collections = $this->doctrineodm->dm
+        $this->dbConfig = $this->doctrineodm->dm->getConfiguration();
+        $this->dbName = $this->dbConfig->getDefaultDB();
+        $this->mongo = $this->doctrineodm->dm
                 ->getConnection()
                 ->getMongo()
                 ->selectDB($this->dbName);
         
-        Assets::add_module_css('database', 'database');
+        Assets::add_module_css('database_odm', 'database');
 
         Template::set_block('sub_nav', 'developer/_sub_nav');
     }
@@ -63,7 +63,7 @@ class Developer extends Admin_Controller
     {
         // Set the default toolbar_title for this page. The actions may change it.
         Template::set('toolbar_title', lang('database_title_maintenance'));
-
+        
         // Performing an action (backup/repair/optimize/drop)? If the action sets
         // a different view and/or sets the $tables variable itself, it should return
         // true to indicate that this method should not prep the form.
@@ -214,7 +214,7 @@ class Developer extends Admin_Controller
 
             if ($this->form_validation->run() !== false) {
                 // Perform the backup.
-                $this->load->dbutil();
+                //$this->load->dbutil();
 
                 $format   = $_POST['file_type'];
                 $basename = $_POST['file_name'] . '.' . ($format == 'gzip' ? 'gz' : $format);
@@ -223,57 +223,17 @@ class Developer extends Admin_Controller
                 $prefs = array(
                     'format'     => $format,
                     'filename'   => $filename,
+                    'basename'   => $basename,
                     'tables'     => $_POST['tables'],
                 );
                 
-		// Was a Zip file requested?
-		if ($prefs['format'] === 'zip')
-		{
-			// Set the filename if not provided (only needed with Zip files)
-			if ($prefs['filename'] === '')
-			{
-				$prefs['filename'] = (count($prefs['tables']) === 1 ? $prefs['tables'] : $this->db->database)
-							.date('Y-m-d_H-i', time()).'.sql';
-			}
-			else
-			{
-				// If they included the .zip file extension we'll remove it
-				if (preg_match('|.+?\.zip$|', $prefs['filename']))
-				{
-					$prefs['filename'] = str_replace('.zip', '', $prefs['filename']);
-				}
-
-				// Tack on the ".sql" file extension if needed
-				if ( ! preg_match('|.+?\.sql$|', $prefs['filename']))
-				{
-					$prefs['filename'] .= '.sql';
-				}
-			}
-
-			// Load the Zip class and output it
-			$this->load->library('zip');
-			$this->zip->add_data($prefs['filename'], $this->_backup($prefs));
-			return $CI->zip->get_zip();
-		}
-		elseif ($prefs['format'] === 'txt') // Was a text file requested?
-		{
-			return $this->_backup($prefs);
-		}
-		elseif ($prefs['format'] === 'gzip') // Was a Gzip file requested?
-		{
-			return gzencode($this->_backup($prefs));
-		}                
-                
-                $backup = $this->dbutil->backup($prefs);
-
-                $this->load->helper('file');
-                write_file($filename, $backup);
+                $this->_backup($prefs);
 
                 if (file_exists($filename)) {
                     Template::set_message(
                         sprintf(
                             lang('database_backup_success'),
-                            html_escape(site_url(SITE_AREA . "/developer/database/get_backup/{$basename}")),
+                            html_escape(site_url(SITE_AREA . "/developer/database_odm/get_backup/{$basename}")),
                             html_escape($filename)
                         ),
                         'success'
@@ -282,7 +242,7 @@ class Developer extends Admin_Controller
                     Template::set_message(lang('database_backup_failure'), 'error');
                 }
 
-                redirect(SITE_AREA . '/developer/database');
+                redirect(SITE_AREA . '/developer/database_odm');
             }
 
             // Validation failed.
@@ -313,7 +273,7 @@ class Developer extends Admin_Controller
         $backupFile = "{$this->backup_folder}{$filename}";
         if (! file_exists($backupFile)) {
             Template::set_message(sprintf(lang('database_get_backup_error'), $filename), 'error');
-            redirect(SITE_AREA . '/developer/database/backups');
+            redirect(SITE_AREA . '/developer/database_odm/backups');
         }
 
         $data = file_get_contents($backupFile);
@@ -321,7 +281,7 @@ class Developer extends Admin_Controller
         $this->load->helper('download');
         force_download($filename, $data);
 
-        redirect(SITE_AREA . '/developer/database/backups');
+        redirect(SITE_AREA . '/developer/database_odm/backups');
     }
 
     /**
@@ -343,7 +303,7 @@ class Developer extends Admin_Controller
             if (empty($file)) {
                 // Couldn't read from file.
                 Template::set_message(sprintf(lang('database_restore_read_error'), $backupFile), 'error');
-                redirect(SITE_AREA . '/developer/database/backups');
+                redirect(SITE_AREA . '/developer/database_odm/backups');
             }
 
             // Loop through each line, building the query until it is complete,
@@ -407,7 +367,7 @@ class Developer extends Admin_Controller
         if (empty($_POST['tables']) || ! is_array($_POST['tables'])) {
             // No tables were selected.
             Template::set_message(lang('database_drop_none'), 'error');
-            redirect(SITE_AREA . '/developer/database');
+            redirect(SITE_AREA . '/developer/database_odm');
         }
 
         // Delete the tables....
@@ -437,7 +397,7 @@ class Developer extends Admin_Controller
             $notDropped == 0 ? 'success' : 'error'
         );
 
-        redirect(SITE_AREA . '/developer/database');
+        redirect(SITE_AREA . '/developer/database_odm');
     }
 
     //--------------------------------------------------------------------------
@@ -456,7 +416,7 @@ class Developer extends Admin_Controller
         if (empty($tables) || ! is_array($tables)) {
             // No tables selected
             Template::set_message(lang('database_repair_none'), 'error');
-            redirect(SITE_AREA . '/developer/database');
+            redirect(SITE_AREA . '/developer/database_odm');
         }
 
         $this->load->dbutil();
@@ -474,7 +434,7 @@ class Developer extends Admin_Controller
             $failed == 0 ? 'success' : 'info'
         );
 
-        redirect(SITE_AREA . '/developer/database');
+        redirect(SITE_AREA . '/developer/database_odm');
     }
 
     /**
@@ -492,7 +452,7 @@ class Developer extends Admin_Controller
             Template::set_message(lang('database_optimize_failure'), 'error');
         }
 
-        redirect(SITE_AREA . '/developer/database');
+        redirect(SITE_AREA . '/developer/database_odm');
     }
 
     /**
@@ -564,8 +524,84 @@ class Developer extends Admin_Controller
         //mongodump --host mongodb1.example.net --port 37017 --username user --password pass --out /opt/backup/mongodump-2011-10-24
         //mongodump  --db test --collection collection
         //$this->load->config('user_meta');
-        $dir = config_item('database_backup_dir');
-        $out = $dir . "/" . $prefs['filename'];
-        $cmd = "mongodump --host $host --port $port --username $user --password $pass --out $out";
+        
+        //make sure mongodump installed:
+        $mongodump = trim(`which mongodump`);
+        
+
+        //print "<Pre>"; Kint::dump($db); exit;
+        
+        if(empty($mongodump)) {
+            //error... mongodump not installed.
+            return false;
+        }
+        
+        if(!is_dir($this->backup_folder)) {
+            //bad backup directory
+            return false;
+        }
+        
+        //@TODO should be a better/more flexible way to pull creds
+        require APPPATH . 'config/doctrine.php';
+
+        $username = "";
+        if(!empty($db['default']['username'])) {
+            $username = "--username " . $db['default']['username'];
+        }
+
+        $password = "";
+        if(!empty($db['default']['password'])) {
+            $password = "--password " . $db['default']['password'];
+        }
+
+        $port = "";
+        if(!empty($db['default']['port'])) {
+            $port = "--port " . $db['default']['port'];
+        }
+
+        $hostname = "";
+        if(!empty($db['default']['hostname'])) {
+            $hostname = "--host " . $db['default']['hostname'];
+        }
+
+        $database = "";
+        if(!empty($db['default']['database'])) {
+            $database = "--db " . $db['default']['database'];
+        }
+
+
+        if(empty($prefs['tables'])) {
+            //dump entire db:
+            $cmd = "$mongodump $hostname $port $username $password $database --out {$prefs['filename']}";
+            exec($cmd, $output, $return);
+        }
+        else {
+            //dump selected collections
+            foreach($prefs['tables'] as $collection) {
+                $cmd = "$mongodump $hostname $port $username $password $database --collection $collection --out {$prefs['filename']}";
+                exec($cmd, $output, $return);
+            }
+        }
+        
+        // Was a Zip file requested?
+        if ($prefs['format'] === 'zip')
+        {
+            // Load the Zip class and output it
+            $this->load->library('zip');
+            $this->zip->add_dir($prefs['filename']);
+            $this->zip->archive($prefs['filename'] . '.zip');
+            system("rm -rf ".escapeshellarg($prefs['filename']));
+        }
+        elseif ($prefs['format'] === 'json') // Was a text file requested?
+        {
+            //mongoexport --db test --collection traffic --out traffic.json
+            //return $this->_backup($prefs);
+        }
+                
+        //$backup = $this->dbutil->backup($prefs);
+        //$this->load->helper('file');
+        //write_file($filename, $backup);
+        
+        //print "<pre>cmd:$cmd return:$return\n\n"; print_r($output); exit;
     }
 }
