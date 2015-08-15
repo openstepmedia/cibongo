@@ -1,25 +1,17 @@
 <?php defined('BASEPATH') || exit('No direct script access allowed');
 /**
- * Bonfire
+ * CIBongo
  *
  * An open source project to allow developers to jumpstart their development of
  * CodeIgniter applications
  *
  * @package   Bonfire
- * @author    Bonfire Dev Team
- * @copyright Copyright (c) 2011 - 2015, Bonfire Dev Team
- * @license   http://opensource.org/licenses/MIT The MIT License
- * @link      http://cibonfire.com
- * @since     Version 1.0
- * @filesource
  */
 
 /**
- * Various tools to manage the Database tables.
+ * Various tools to manage the Mongo Collections.
  *
- * @package Bonfire\Modules\Database\Controllers\Developer
- * @author  Bonfire Dev Team
- * @link    http://cibonfire.com/docs/developer
+ * @package Bonfire\Modules\Database_odm\Controllers\Developer
  */
 class Developer extends Admin_Controller
 {
@@ -217,8 +209,7 @@ class Developer extends Admin_Controller
                 //$this->load->dbutil();
 
                 $format   = $_POST['file_type'];
-                $basename = $_POST['file_name'] . '.' . ($format == 'gzip' ? 'gz' : $format);
-                $filename = "{$this->backup_folder}{$basename}";
+                $filename = $this->backup_folder . $_POST['file_name'];
 
                 $prefs = array(
                     'format'     => $format,
@@ -227,14 +218,15 @@ class Developer extends Admin_Controller
                     'tables'     => $_POST['tables'],
                 );
                 
-                $this->_backup($prefs);
+                $backup_file = $this->_backup($prefs);
 
-                if (file_exists($filename)) {
+                if (file_exists($backup_file)) {
+                    $backup_file_basename = basename($backup_file);
                     Template::set_message(
                         sprintf(
                             lang('database_backup_success'),
-                            html_escape(site_url(SITE_AREA . "/developer/database_odm/get_backup/{$basename}")),
-                            html_escape($filename)
+                            html_escape(site_url(SITE_AREA . "/developer/database_odm/get_backup/{$backup_file_basename}")),
+                            html_escape($backup_file_basename)
                         ),
                         'success'
                     );
@@ -589,8 +581,11 @@ class Developer extends Admin_Controller
             // Load the Zip class and output it
             $this->load->library('zip');
             $this->zip->add_dir($prefs['filename']);
-            $this->zip->archive($prefs['filename'] . '.zip');
+            $this->zip->archive($prefs['filename'] . ".zip");
+           
             system("rm -rf ".escapeshellarg($prefs['filename']));
+            
+            return $prefs['filename'] . ".zip";
         }
         elseif ($prefs['format'] === 'json') // Was a text file requested?
         {

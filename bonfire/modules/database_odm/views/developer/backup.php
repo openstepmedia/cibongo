@@ -57,8 +57,10 @@
                 <label for="file_type" class="control-label"><?php echo lang('database_compress_question'); ?></label>
                 <div class="controls">
                     <select name="file_type" id="file_type">
+                        <!--
                         <option value="txt" <?php echo set_select('file_type', 'txt', true); ?>><?php echo lang('bf_none'); ?></option>
                         <option value="gzip" <?php echo set_select('file_type', 'gzip'); ?>><?php echo lang('database_gzip'); ?></option>
+                        -->
                         <option value="zip" <?php echo set_select('file_type', 'zip'); ?>><?php echo lang('database_zip'); ?></option>
                     </select>
                     <span class="help-inline"><?php echo form_error('file_type'); ?></span>
