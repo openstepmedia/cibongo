@@ -438,7 +438,8 @@ class Contexts
 
         // Get the permission ID, either from an existing permission or by inserting
         // a new permission.
-        self::$ci->load->model('permissions/permission_model');
+        //self::$ci->load->model('permissions/permission_model');
+        self::$ci->load->model('permissions/permission_odm_model', 'permission_model');
         if (self::$ci->permission_model->permission_exists($cname)) {
             $pid = self::$ci->permission_model->find_by('name', $cname)->permission_id;
         } else {

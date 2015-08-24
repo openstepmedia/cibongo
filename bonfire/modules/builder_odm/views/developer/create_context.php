@@ -20,13 +20,13 @@
                     ?></span>
                 </div>
             </div>
-            <?php if (! empty($roles) && is_array($roles)) : ?>
+            <?php if (! empty($roles)) : ?>
             <div class="control-group">
                 <label class="control-label" id="roles_label"><?php echo lang('mb_roles_label'); ?></label>
                 <div class="controls" aria-labelledby="roles_label" role="group">
                     <?php foreach ($roles as $role) : ?>
-                    <label class="checkbox" for="roles_<?php echo $role->role_id; ?>">
-                        <input type="checkbox" name="roles[]" id="roles_<?php echo $role->role_id; ?>" value="<?php echo $role->role_id; ?>" <?php echo set_checkbox('roles[]', $role->role_id); ?> />
+                    <label class="checkbox" for="roles_<?php echo $role->id; ?>">
+                        <input type="checkbox" name="roles[]" id="roles_<?php echo $role->id; ?>" value="<?php echo $role->id; ?>" <?php echo set_checkbox('roles[]', $role->id); ?> />
                         <?php echo $role->role_name; ?>
                     </label>
                     <?php endforeach; ?>

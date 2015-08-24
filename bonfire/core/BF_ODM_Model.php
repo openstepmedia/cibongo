@@ -838,7 +838,7 @@ class BF_ODM_Model extends CI_Model
      */
     public function count_all()
     {
-        return $this->db->count_all_results($this->table_name);
+        return $this->qb()->count()->getQuery()->execute();
     }
 
     /**

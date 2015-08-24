@@ -3,27 +3,12 @@
 defined('BASEPATH') || exit('No direct script access allowed');
 
 /**
- * Bonfire
- *
- * An open source project to allow developers to jumpstart their development of
- * CodeIgniter applications
- *
- * @package   Bonfire
- * @author    Bonfire Dev Team
- * @copyright Copyright (c) 2011 - 2014, Bonfire Dev Team
- * @license   http://opensource.org/licenses/MIT
- * @link      http://cibonfire.com
- * @since     Version 1.0
- * @filesource
- */
-
-/**
- * Activities
+ * ODM Permissions
  *
  * Provides a simple and consistent way to record and display user-related
  * activities in both core and custom modules.
  *
- * @package    Bonfire\Modules\Activities\Models\Activity_model
+ * @package    Bonfire\Modules\Permissions\Models\Permission_odm_model
  * @author     Bonfire Dev Team
  * @link       http://cibonfire.com/docs/activities
  *
@@ -106,6 +91,27 @@ class Permission_odm_model extends BF_ODM_Model {
     public function log_activity($user_id = null, $activity = '', $module = 'any')
     {
     }
+    
+    /**
+     * Check whether a permission is in the system.
+     *
+     * @param string $permission The name of the permission to check.
+     *
+     * @return boolean true if the permission was found, null if no permission was
+     * passed, else false.
+     */
+    public function permission_exists($permission = null)
+    {
+        if (empty($permission)) {
+            return null;
+        }
+
+        if ($this->find_by('name', $permission)) {
+            return true;
+        }
+
+        return false;
+    }    
 }
 
-/* /activities/models/activity_model.php */
+/* /permission/models/permission_odm_model.php */

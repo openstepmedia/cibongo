@@ -109,8 +109,8 @@ class Developer extends Admin_Controller
      *
      * @return  void
      */
-    public function create_context()
-    {
+    public function create_context() {
+    
         // Form submittal?
         if (isset($_POST['build'])) {
             $this->form_validation->set_rules('context_name', 'lang:mb_context_name', 'required|trim|alpha_numeric');
@@ -125,7 +125,7 @@ class Developer extends Admin_Controller
                 $this->load->library('ui/contexts');
                 if (Contexts::create_context($name, $for_roles, $migrate)) {
                     Template::set_message(lang('mb_context_create_success'), 'success');
-                    redirect(SITE_AREA . '/developer/builder');
+                    redirect(SITE_AREA . '/developer/builder_odm');
                 }
 
                 // Creating the context failed
@@ -134,18 +134,13 @@ class Developer extends Admin_Controller
         }
 
         // Load roles for display in the form.
-        $this->load->model('roles/role_model');
-        $this->role_model->select(
-            array(
-                'role_id',
-                'role_name',
-            )
-        )
-                         ->where('deleted', 0);
+        $this->load->model('roles/role_odm_model');
+        $roles = $this->role_odm_model->find_all_by(array(
+            'deleted' => null,
+        ));
 
-        Template::set('roles', $this->role_model->find_all());
+        Template::set('roles', $roles);
         Template::set('toolbar_title', lang('mb_create_a_context'));
-
         Template::render();
     }
 

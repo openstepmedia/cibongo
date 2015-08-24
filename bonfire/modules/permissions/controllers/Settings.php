@@ -88,7 +88,7 @@ class Settings extends Admin_Controller {
             }
         }//end if
 
-        $total = $this->permission_model->count_all();
+        $total = $this->permission_odm_model->count_all();
 
         // Pagination
         $this->load->library('pagination');

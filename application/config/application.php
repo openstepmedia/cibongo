@@ -52,7 +52,7 @@ $config['site.backup_folder']	= 'archives/';
 //      context_content_name
 // The icon displayed is chosen automatically from the file:
 //      theme/images/context_context_name.png
-$config['contexts'] = array('content','reports','settings','developer');
+$config['contexts'] = array('newcontext','content','reports','settings','developer');
 
 //------------------------------------------------------------------------------
 // ACTIVITIES

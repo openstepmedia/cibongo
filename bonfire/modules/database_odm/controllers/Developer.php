@@ -11,6 +11,13 @@
 /**
  * Various tools to manage the Mongo Collections.
  *
+ * Requirements:
+ * Following items must be installed:
+ * 
+ * pecl install zip
+ * mongodump
+ * mongorestore
+ * 
  * @package Bonfire\Modules\Database_odm\Controllers\Developer
  */
 class Developer extends Admin_Controller
@@ -121,7 +128,6 @@ class Developer extends Admin_Controller
         Template::set('num_rows', $query->count());
         Template::set('query', 'db.' . $table . '.find()');
         Template::set('toolbar_title', sprintf(lang('database_browse'), $table));
-
         Template::render();
     }
 
@@ -298,6 +304,12 @@ class Developer extends Admin_Controller
                 redirect(SITE_AREA . '/developer/database_odm/backups');
             }
 
+            $extract_dir = basename($file);
+            $zip = new ZipArchive();
+            $zip->open($file);
+            $zip->extractTo($extract_dir);
+            $zip->close();  
+            
             // Loop through each line, building the query until it is complete,
             // then executing the query and recording the results.
             $queryResults = array();

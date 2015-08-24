@@ -83,7 +83,8 @@ class Settings extends Admin_Controller
                 );
 
                 // Save the settings to the db
-                $updated = $this->settings_model->update_batch($data, 'name');
+                //$updated = $this->settings_model->update_batch($data, 'name');
+                $updated = $this->settings_odm_model->update_batch($data, 'name');
                 if ($updated) {
                     // Success, reload the page so they can see their settings
                     Template::set_message(lang('emailer_settings_save_success'), 'success');
