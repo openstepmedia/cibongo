@@ -136,12 +136,13 @@ $validationErrors = validation_errors();
                         <?php endforeach;?>
                     </div>
                 </div>
+
                 <div class="control-group mb_advanced">
                     <label class="control-label" for="role_id"><?php echo lang('mb_form_role_id'); ?></label>
                     <div class="controls">
                         <select name="role_id" id="role_id">
                             <?php foreach ($roles as $role): ?>
-                            <option value="<?php echo $role['role_id']; ?>"<?php echo $defaultRoleWithFullAccess == $role['role_id'] ? ' selected="selected"' : ''; ?>><?php e($role['role_name']); ?></option>
+                            <option value="<?php echo $role->id; ?>"<?php echo $defaultRoleWithFullAccess == $role->id ? ' selected="selected"' : ''; ?>><?php e($role->role_name); ?></option>
                             <?php endforeach;?>
                         </select>
                      </div>
@@ -322,7 +323,7 @@ $validationErrors = validation_errors();
                         $lastFieldNumIndex = $field_num_count - 1;
                         for ($ndx = 0; $ndx < $field_num_count; $ndx++) :
                         ?>
-                        <a href="<?php echo site_url(SITE_AREA . '/developer/builder/create_module/' . $field_numbers[$ndx]); ?>"<?php echo $field_numbers[$ndx] == $field_total ? ' class="current"' : ''; ?>>
+                        <a href="<?php echo site_url(SITE_AREA . '/developer/builder_odm/create_module/' . $field_numbers[$ndx]); ?>"<?php echo $field_numbers[$ndx] == $field_total ? ' class="current"' : ''; ?>>
                             <?php echo $field_numbers[$ndx]; ?>
                         </a><?php echo $ndx < $lastFieldNumIndex ? ' | ' : ''; ?>
                         <?php endfor; ?>

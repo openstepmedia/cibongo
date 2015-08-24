@@ -331,10 +331,12 @@ class Developer extends Admin_Controller
      */
     private function prepareModuleForm($fieldTotal, $formError)
     {
-        $this->load->model('roles/role_model');
-        $this->role_model->select(array('role_id', 'role_name'))
-                         ->where('deleted', 0)
-                         ->order_by('role_name');
+        $this->load->model('roles/role_odm_model', 'role_model');
+        $roles = $this->role_model->qb()
+                ->select('id', 'role_name')
+                ->field('deleted')->equals(null)
+                ->sort('role_name', 'asc')
+                ->getQuery()->execute();
 
         $this->load->library('modulebuilder');
         $boolFieldTypes = array_merge($this->modulebuilder->getBooleanTypes(), array('BIT', 'BOOL', 'TINYINT'));
@@ -354,7 +356,7 @@ class Developer extends Admin_Controller
         Template::set('form_action_options', $this->options['form_action_options']);
         Template::set('form_error', $formError);
         Template::set('listFieldTypes', $listFieldTypes);
-        Template::set('roles', $this->role_model->as_array()->find_all());
+        Template::set('roles', $roles);
         Template::set(
             'textarea_editors',
             array(
@@ -646,6 +648,8 @@ class Developer extends Admin_Controller
         //
         // Allow for the Old method - update the schema first to prevent errors
         // in duplicate column names due to Migrations.php caching db columns
+        
+        /*
         if (! $this->db->field_exists('version', 'schema_version')) {
             $this->dbforge->add_column(
                 'schema_version',
@@ -670,6 +674,7 @@ class Developer extends Admin_Controller
             $data['mb_migration_result'] = 'mb_out_tables_error';
         }
 
+        */
         Template::set($data);
     }
 

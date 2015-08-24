@@ -523,3 +523,6 @@ input[type=radio] {
 	}
 }
 
+#all_fields input[type=text]{
+    width:400px;
+}
